@@ -1,3 +1,5 @@
 project_files_to_scan
 
 templatoron_template_files
+
+tokens.py

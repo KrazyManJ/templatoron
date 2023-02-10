@@ -3,8 +3,9 @@ import os
 import re
 from os import PathLike
 from cryptography.fernet import Fernet
+from tokens import FERNET_KEY
 
-fernet = Fernet("JGlMBfgdyGhdjZ4WPmJ4LU9LVJZ3ViQTaSzBZFsP5DY=")
+fernet = Fernet(FERNET_KEY)
 
 
 def generate_templatoron_file_from_folder(
