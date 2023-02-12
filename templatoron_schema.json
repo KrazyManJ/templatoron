@@ -1,0 +1,33 @@
+{
+    "type": "object",
+    "additionalProperties": false,
+    "properties": {
+        "variables": {
+            "type": "array",
+            "items": {
+                "type": "string"
+            }
+        },
+        "structure": {
+            "$ref": "#/definitions/structure-node"
+        }
+    },
+    "definitions": {
+        "structure-node": {
+            "type": "object",
+            "additionalProperties": false,
+            "patternProperties": {
+                "^.*$": {
+                    "anyOf": [
+                        {
+                            "type": "string"
+                        },
+                        {
+                            "$ref": "#/definitions/structure-node"
+                        }
+                    ]
+                }
+            }
+        }
+    }
+}

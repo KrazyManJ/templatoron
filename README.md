@@ -5,3 +5,13 @@
 ---
 
 ### ⚠️ This project is in early stage of development!
+
+---
+
+Abilities:
+
+- [X] create files or folders from templatoron files
+- [X] scan files and folders and create templatoron files from it
+- [X] include variables in creation of files and folders from templatoron files
+- [ ] command line interface = make templates using terminal
+- [ ] have user interface desktop app
