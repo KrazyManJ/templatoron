@@ -5,6 +5,7 @@ from os import PathLike
 
 import jsonschema
 from cryptography.fernet import Fernet
+
 from tokens import FERNET_KEY
 
 fernet = Fernet(FERNET_KEY)
@@ -60,7 +61,11 @@ def create_files_from_templatoron_file(
             elif type(v) is str:
                 open(fname, "w").write(var_parser(v))
 
-    data: dict = json.load(open(file), object_hook=parse_json_func)
+    if not os.path.exists(file):
+        raise FileNotFoundError(f"File \"{file}\" does not exist!")
+    if not file.endswith(".json"):
+        raise Exception("File is not templatoron file (.json)!")
+    data: dict = json.load(open(file, "r"), object_hook=parse_json_func)
     verify_templatoron_json(data)
     srcvarset = set(data.get("variables", []))
     varset = set(variable_values.keys())
@@ -68,5 +73,6 @@ def create_files_from_templatoron_file(
         raise Exception("Missing variables: " + ", ".join(srcvarset.difference(varset)))
     file_creator(output_path, data.get("structure", {}))
 
+
 def verify_templatoron_json(data: dict):
-    jsonschema.validate(data,json.load(open("templatoron_schema.json")))
+    jsonschema.validate(data, json.load(open("templatoron_schema.json")))
