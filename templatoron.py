@@ -12,14 +12,34 @@ FERNET = Fernet(FERNET_KEY)
 EXT = ".json"
 ENC = "utf-8"
 
+
 class TemplatoronObject:
     structure: dict = {}
     variables: list[str] = []
 
     @staticmethod
+    def is_valid_file(
+            path: str | bytes | PathLike
+    ):
+        if not os.path.exists(path):
+            return False
+        if not os.path.isfile(path):
+            return False
+        if not path.endswith(EXT):
+            return False
+        try:
+            jsonschema.validate(json.load(open(path)), json.load(open("templatoron_schema.json")))
+        except:
+            return False
+        return True
+
+    @staticmethod
     def from_file(
             path: str | bytes | PathLike
     ):
+        if not TemplatoronObject.is_valid_file(path):
+            raise Exception("Is not Templatoron file!")
+
         def decypt(d: dict):
             r = {}
             for k, v in d.items():
@@ -28,8 +48,8 @@ class TemplatoronObject:
 
         R = TemplatoronObject()
         data: dict = json.load(open(path, "r"), object_hook=decypt)
-        R.structure = data.get("structure",{})
-        R.variables = data.get("variables",[])
+        R.structure = data.get("structure", {})
+        R.variables = data.get("variables", [])
         return R
 
     @staticmethod
@@ -72,7 +92,7 @@ class TemplatoronObject:
             "variables": self.variables,
             "structure": self.structure
         }
-        json.dump(encrypt(RESULT),open(path,"w"),indent=4)
+        json.dump(encrypt(RESULT), open(path if path.endswith(EXT) else path + EXT, "w"), indent=4)
 
     def create_project(
             self,
@@ -98,7 +118,3 @@ class TemplatoronObject:
         if varset != srcvarset:
             raise Exception("Missing variables: " + ", ".join(srcvarset.difference(varset)))
         file_creator(output_path, self.structure)
-
-
-def verify_templatoron_json(data: dict):
-    jsonschema.validate(data, json.load(open("templatoron_schema.json")))
