@@ -15,3 +15,8 @@ Abilities:
 - [X] include variables in creation of files and folders from templatoron files
 - [ ] command line interface = make templates using terminal
 - [ ] have user interface desktop app
+
+## Design Points
+
+- Main page = list of all imported templatoron presets, with parameters input and output screen
+- Edit page = to create or edit actual templatoron files

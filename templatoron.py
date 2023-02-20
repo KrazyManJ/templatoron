@@ -12,6 +12,7 @@ FERNET = Fernet(FERNET_KEY)
 EXT = ".json"
 ENC = "latin-1"
 
+SCHEMA_PATH = os.path.join(__file__,os.path.pardir,"templatoron_schema.json")
 
 class TemplatoronObject:
     structure: dict = {}
@@ -28,7 +29,7 @@ class TemplatoronObject:
         if not path.endswith(EXT):
             return False
         try:
-            jsonschema.validate(json.load(open(path,encoding=ENC)), json.load(open("templatoron_schema.json",encoding=ENC)))
+            jsonschema.validate(json.load(open(path,encoding=ENC)), json.load(open(SCHEMA_PATH,encoding=ENC)))
         except:
             return False
         return True

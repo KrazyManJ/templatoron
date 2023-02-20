@@ -1,3 +1,5 @@
+import json
+import os.path
 from tkinter import *
 from tkinter.filedialog import *
 from tkinter.ttk import Treeview
@@ -9,6 +11,9 @@ FILE_TYPES = [("Templatoron File", ".json")]
 Opened_Templatoron: TemplatoronObject | None = None
 i = -1
 
+DATA = {
+    "last_opened": None
+}
 
 def update_view():
     for i in tree.get_children():
@@ -31,6 +36,7 @@ def open_templ_file():
     pth = askopenfilename(filetypes=FILE_TYPES, initialdir="/")
     if pth != "":
         Opened_Templatoron = TemplatoronObject.from_file(pth)
+        DATA["last_opened"] = pth
         update_view()
 
 
@@ -88,5 +94,16 @@ if __name__ == '__main__':
 
     create_project = Button(text="Create Project", command=create_project)
     create_project.pack(pady=20)
+
+    if os.path.exists("data.json"):
+        DATA = json.load(open("data.json","r",encoding="latin-1"))
+        if DATA["last_opened"] is not None:
+            Opened_Templatoron = TemplatoronObject.from_file(DATA["last_opened"])
+            update_view()
+
+    def on_closing():
+        json.dump(DATA,open("data.json","w",encoding="latin-1"))
+        win.destroy()
+    win.protocol("WM_DELETE_WINDOW", on_closing)
 
     win.mainloop()
