@@ -10,7 +10,7 @@ from tokens import FERNET_KEY
 
 FERNET = Fernet(FERNET_KEY)
 EXT = ".json"
-ENC = "utf-8"
+ENC = "latin-1"
 
 
 class TemplatoronObject:
@@ -28,7 +28,7 @@ class TemplatoronObject:
         if not path.endswith(EXT):
             return False
         try:
-            jsonschema.validate(json.load(open(path)), json.load(open("templatoron_schema.json")))
+            jsonschema.validate(json.load(open(path,encoding=ENC)), json.load(open("templatoron_schema.json",encoding=ENC)))
         except:
             return False
         return True
@@ -47,7 +47,7 @@ class TemplatoronObject:
             return r
 
         R = TemplatoronObject()
-        data: dict = json.load(open(path, "r"), object_hook=decypt)
+        data: dict = json.load(open(path, "r", encoding=ENC), object_hook=decypt)
         R.structure = data.get("structure", {})
         R.variables = data.get("variables", [])
         return R
@@ -68,7 +68,7 @@ class TemplatoronObject:
             r = {}
             for i, val in enumerate(os.listdir(parent)):
                 pth = var_finder(os.path.join(parent, val))
-                r[val] = folder_scan(pth) if os.path.isdir(pth) else var_finder(open(pth, "r").read())
+                r[val] = folder_scan(pth) if os.path.isdir(pth) else var_finder(open(pth, "r", encoding=ENC).read())
             return r
 
         R = TemplatoronObject()
@@ -92,7 +92,7 @@ class TemplatoronObject:
             "variables": self.variables,
             "structure": self.structure
         }
-        json.dump(encrypt(RESULT), open(path if path.endswith(EXT) else path + EXT, "w"), indent=4)
+        json.dump(encrypt(RESULT), open(path if path.endswith(EXT) else path + EXT, "w", encoding=ENC), indent=4)
 
     def create_project(
             self,
@@ -111,7 +111,7 @@ class TemplatoronObject:
                     os.mkdir(fname)
                     file_creator(fname, v)
                 elif type(v) is str:
-                    open(fname, "w").write(var_parser(v))
+                    open(fname, "w", encoding=ENC).write(var_parser(v))
 
         srcvarset = set(self.variables)
         varset = set(variable_values.keys())
