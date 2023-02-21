@@ -1,0 +1,5 @@
+<RCC>
+  <qresource prefix="titlebar">
+    <file>x.svg</file>
+  </qresource>
+</RCC>
