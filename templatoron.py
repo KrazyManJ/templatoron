@@ -17,8 +17,7 @@ SCHEMA_PATH = os.path.join(__file__,os.path.pardir,"templatoron_schema.json")
 class TemplatoronObject:
     name: str = "Unnamed"
     structure: dict = {}
-    fullvariables: list[dict[str,str]] = []
-    variables: list[str] = []
+    variables: list[dict[str,str]] = []
 
     @staticmethod
     def is_valid_file(
@@ -44,6 +43,7 @@ class TemplatoronObject:
             raise Exception("Is not Templatoron file!")
 
         def decypt(d: dict):
+            if set(d.keys()) == {'displayname', 'id'} or set(d.keys()) == {'name','structure','variables'}: return d
             r = {}
             for k, v in d.items():
                 r[k] = FERNET.decrypt(v.encode(ENC)).decode(ENC) if type(v) == str else v
@@ -51,12 +51,9 @@ class TemplatoronObject:
 
         R = TemplatoronObject()
         data: dict = json.load(open(path, "r", encoding=ENC), object_hook=decypt)
+        R.name = data.get("name","Unnamed")
         R.structure = data.get("structure", {})
-        varsIds = []
-        R.fullvariables = data.get("variables", [])
-        for v in R.fullvariables:
-            varsIds += v["id"]
-        R.variables = varsIds
+        R.variables = data.get("variables", [])
         return R
 
     @staticmethod
@@ -97,7 +94,7 @@ class TemplatoronObject:
 
         RESULT = {
             "name": self.name,
-            "variables": self.fullvariables,
+            "variables": self.variables,
             "structure": self.structure
         }
         json.dump(encrypt(RESULT), open(path if path.endswith(EXT) else path + EXT, "w", encoding=ENC), indent=4)
@@ -121,7 +118,7 @@ class TemplatoronObject:
                 elif type(v) is str:
                     open(fname, "w", encoding=ENC).write(var_parser(v))
 
-        srcvarset = set(self.variables)
+        srcvarset = set([a["id"] for a in self.variables])
         varset = set(variable_values.keys())
         if varset != srcvarset:
             raise Exception("Missing variables: " + ", ".join(srcvarset.difference(varset)))

@@ -65,18 +65,18 @@ def create_project():
         def create():
             varvalues = {}
             for v in Opened_Templatoron.variables:
-                if cwin.getvar(v) == "":
+                if cwin.getvar(v["id"]) == "":
                     messagebox.showerror("Templatoron - Error", f"Parameter '{v}' unfilled!")
                     return
-                varvalues[v] = cwin.getvar(v)
+                varvalues[v["id"]] = cwin.getvar(v["id"])
             output = askdirectory()
             if output != "":
                 Opened_Templatoron.create_project(output, **varvalues)
                 cwin.destroy()
 
         for i, var in enumerate(Opened_Templatoron.variables):
-            Label(cwin, text=var).grid(row=i, column=0)
-            Entry(cwin, textvariable=var).grid(row=i, column=1)
+            Label(cwin, text=var["displayname"]).grid(row=i, column=0)
+            Entry(cwin, textvariable=var["id"]).grid(row=i, column=1)
         Button(cwin, text="Finish", command=create).grid(columnspan=2, column=0, row=len(Opened_Templatoron.variables))
 
 
