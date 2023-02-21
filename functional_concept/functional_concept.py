@@ -2,6 +2,7 @@ import json
 import os.path
 from tkinter import *
 from tkinter.filedialog import *
+import tkinter.messagebox as messagebox
 from tkinter.ttk import Treeview
 
 from templatoron import TemplatoronObject
@@ -58,17 +59,20 @@ def create_project():
     global Opened_Templatoron
     if Opened_Templatoron is not None:
         cwin = Toplevel()
+        cwin.title("Templatoron - Create project")
         cwin.grab_set()
 
         def create():
             varvalues = {}
             for v in Opened_Templatoron.variables:
                 if cwin.getvar(v) == "":
+                    messagebox.showerror("Templatoron - Error", f"Parameter '{v}' unfilled!")
                     return
                 varvalues[v] = cwin.getvar(v)
             output = askdirectory()
-            Opened_Templatoron.create_project(output, **varvalues)
-            cwin.destroy()
+            if output != "":
+                Opened_Templatoron.create_project(output, **varvalues)
+                cwin.destroy()
 
         for i, var in enumerate(Opened_Templatoron.variables):
             Label(cwin, text=var).grid(row=i, column=0)

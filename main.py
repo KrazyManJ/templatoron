@@ -1,5 +1,13 @@
-from templatoron import TemplatoronObject
+import sys
+
+from PyQt5.QtWidgets import QApplication
+
+from app.window import Window
+from app.assets import assets
 
 if __name__ == '__main__':
-    T = TemplatoronObject.from_scaning_folder("project_files_to_scan/@#project_name")
-    T.create_project("",project_name="projectr",package_name="projectr")
+    App = QApplication(sys.argv)
+    assets.qInitResources()
+    ui = Window(App)
+    ui.show()
+    sys.exit(App.exec())
