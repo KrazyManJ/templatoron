@@ -2,4 +2,7 @@
   <qresource prefix="titlebar">
     <file>x.svg</file>
   </qresource>
+  <qresource prefix="content">
+    <file>folder-open.svg</file>
+  </qresource>
 </RCC>

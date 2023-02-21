@@ -2,10 +2,21 @@
     "type": "object",
     "additionalProperties": false,
     "properties": {
+        "name": {
+            "type": "string"
+        },
         "variables": {
             "type": "array",
             "items": {
-                "type": "string"
+                "type": "object",
+                "properties": {
+                    "id": {
+                        "type": "string"
+                    },
+                    "displayname": {
+                        "type": "string"
+                    }
+                }
             }
         },
         "structure": {

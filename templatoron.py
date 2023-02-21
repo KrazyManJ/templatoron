@@ -15,7 +15,9 @@ ENC = "latin-1"
 SCHEMA_PATH = os.path.join(__file__,os.path.pardir,"templatoron_schema.json")
 
 class TemplatoronObject:
+    name: str = "Unnamed"
     structure: dict = {}
+    fullvariables: list[dict[str,str]] = []
     variables: list[str] = []
 
     @staticmethod
@@ -50,7 +52,11 @@ class TemplatoronObject:
         R = TemplatoronObject()
         data: dict = json.load(open(path, "r", encoding=ENC), object_hook=decypt)
         R.structure = data.get("structure", {})
-        R.variables = data.get("variables", [])
+        varsIds = []
+        R.fullvariables = data.get("variables", [])
+        for v in R.fullvariables:
+            varsIds += v["id"]
+        R.variables = varsIds
         return R
 
     @staticmethod
@@ -90,7 +96,8 @@ class TemplatoronObject:
             return data
 
         RESULT = {
-            "variables": self.variables,
+            "name": self.name,
+            "variables": self.fullvariables,
             "structure": self.structure
         }
         json.dump(encrypt(RESULT), open(path if path.endswith(EXT) else path + EXT, "w", encoding=ENC), indent=4)
