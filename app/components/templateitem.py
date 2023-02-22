@@ -1,10 +1,9 @@
 import base64
 
-from PyQt5.QtCore import Qt
-from PyQt5.QtGui import QPixmap, QIcon, QCursor
+from PyQt5.QtGui import QPixmap, QIcon
 from PyQt5.QtWidgets import QListWidgetItem
 
-from templatoron import TemplatoronObject
+from app.src.templatoron import TemplatoronObject
 
 
 class TemplateItem(QListWidgetItem):

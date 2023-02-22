@@ -12,7 +12,13 @@ FERNET = Fernet(FERNET_KEY)
 EXT = ".json"
 ENC = "latin-1"
 
-SCHEMA_PATH = os.path.join(__file__,os.path.pardir,"templatoron_schema.json")
+SCHEMA_PATH = os.path.join(__file__, os.path.pardir, "templatoron_schema.json")
+
+
+def parse_variable_values(txt: str, variable_values: dict[str,str]):
+    for k, v in variable_values.items():
+        txt = txt.replace(f"@#{k}", v)
+    return txt
 
 class TemplatoronObject:
     name: str = "Unnamed"
@@ -116,19 +122,14 @@ class TemplatoronObject:
             output_path: str | bytes | PathLike,
             **variable_values: str
     ):
-        def var_parser(txt: str):
-            for k, v in variable_values.items():
-                txt = txt.replace(f"@#{k}", v)
-            return txt
-
         def file_creator(parent, file_or_folder_dict: dict):
             for k, v in file_or_folder_dict.items():
-                fname = os.path.join(parent, var_parser(k))
+                fname = os.path.join(parent, parse_variable_values(k, variable_values))
                 if type(v) is dict:
                     os.mkdir(fname)
                     file_creator(fname, v)
                 elif type(v) is str:
-                    open(fname, "w", encoding=ENC).write(var_parser(v))
+                    open(fname, "w", encoding=ENC).write(parse_variable_values(v, variable_values))
 
         srcvarset = set([a["id"] for a in self.variables])
         varset = set(variable_values.keys())
