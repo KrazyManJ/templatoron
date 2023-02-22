@@ -1,5 +1,8 @@
 <RCC>
   <qresource prefix="titlebar">
+    <file>normalize.svg</file>
+    <file>maximize.svg</file>
+    <file>minus.svg</file>
     <file>x.svg</file>
   </qresource>
   <qresource prefix="content">

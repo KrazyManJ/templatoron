@@ -54,7 +54,7 @@ class TemplatoronWindow(FramelessWindow):
     def create_project(self):
         if not self.is_something_selected():
             return
-        if len([i for i in self.get_variables() if i.is_not_empty()]) > 0:
+        if len([i for i in self.get_variables() if i.is_empty()]) == 0:
             temp = self.get_selected().Template
             pth = self.OutputPathInput.text()
             varvals = {i.get_id(): i.get_value() for i in self.get_variables()}
@@ -68,20 +68,17 @@ class TemplatoronWindow(FramelessWindow):
         temp = self.get_selected().Template
 
         def r(parent: QTreeWidget | QTreeWidgetItem, data: dict):
-            try:
-                for k, v in data.items():
-                    currP = QTreeWidgetItem([
-                        templatoron.parse_variable_values(k, {i.get_id(): i.get_value() for i in self.get_variables() if
-                                                              i.is_not_empty()})
-                    ])
-                    if isinstance(parent, QTreeWidget):
-                        parent.addTopLevelItem(currP)
-                    elif isinstance(parent, QTreeWidgetItem):
-                        parent.addChild(currP)
-                    if isinstance(v, dict):
-                        r(currP, v)
-            except Exception as e:
-                print(e)
+            for k, v in data.items():
+                currP = QTreeWidgetItem([
+                    templatoron.parse_variable_values(k, {i.get_id(): i.get_value() for i in self.get_variables() if not i.is_empty()})
+                ])
+                if isinstance(parent, QTreeWidget):
+                    parent.addTopLevelItem(currP)
+                elif isinstance(parent, QTreeWidgetItem):
+                    parent.addChild(currP)
+                if isinstance(v, dict):
+                    r(currP, v)
+
 
         r(self.DirectoryDisplay, temp.structure)
         self.DirectoryDisplay.expandAll()
@@ -91,6 +88,7 @@ class TemplatoronWindow(FramelessWindow):
 
     def variableChange(self):
         self.update_tree_view()
+        self.set_create_button_state(len([i for i in self.get_variables() if i.is_empty()]) == 0)
 
     def is_something_selected(self):
         selected_items = self.TemplateListView.selectedItems()
@@ -109,6 +107,7 @@ class TemplatoronWindow(FramelessWindow):
         for var in self.get_selected().Template.variables:
             self.VariableListContent.layout().addWidget(VariableInput(self, var["id"], var["displayname"]))
         self.update_tree_view()
+        self.set_create_button_state(len([i for i in self.get_variables() if i.is_empty()]) == 0)
 
     def set_content_state(self, state: bool):
         opacity_effect = QGraphicsOpacityEffect()
@@ -116,3 +115,9 @@ class TemplatoronWindow(FramelessWindow):
         self.MainFrame.setGraphicsEffect(None if state else opacity_effect)
         self.MainContentFrame.setEnabled(state)
         self.MainFrame.setCursor(QCursor(Qt.ArrowCursor if state else Qt.ForbiddenCursor))
+
+    def set_create_button_state(self, state: bool):
+        opacity_effect = QGraphicsOpacityEffect()
+        opacity_effect.setOpacity(0.5)
+        self.CreateProjectBtn.setGraphicsEffect(None if state else opacity_effect)
+        self.CreateProjectBtn.setCursor(QCursor(Qt.PointingHandCursor if state else Qt.ForbiddenCursor))

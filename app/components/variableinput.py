@@ -49,5 +49,5 @@ class VariableInput(QFrame):
     def get_value(self):
         return self.input.text()
 
-    def is_not_empty(self):
-        return self.input.text() != ""
+    def is_empty(self):
+        return self.input.text() == ""

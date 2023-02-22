@@ -14,8 +14,20 @@
    <string/>
   </property>
   <property name="styleSheet">
-   <string notr="true">#BtnClose {
+   <string notr="true">#TitleBar QPushButton {
+	min-width: 35px;
+	max-width: 35px;
+	min-height: 35px;
+	max-height:35px;
+}
+#BtnClose {
 	border-image: url(:/titlebar/x.svg);
+}
+#BtnMin {
+	border-image: url(:/titlebar/minus.svg);
+}
+#BtnMax {
+	border-image: url(:/titlebar/maximize.svg);
 }
 #TitleBarTitle {
 	font: 12pt &quot;Inter&quot;;
@@ -104,7 +116,7 @@
      </property>
      <layout class="QHBoxLayout" name="horizontalLayout_2">
       <property name="spacing">
-       <number>0</number>
+       <number>5</number>
       </property>
       <property name="leftMargin">
        <number>0</number>
@@ -133,6 +145,26 @@
          </size>
         </property>
        </spacer>
+      </item>
+      <item>
+       <widget class="QPushButton" name="BtnMin">
+        <property name="cursor">
+         <cursorShape>PointingHandCursor</cursorShape>
+        </property>
+        <property name="text">
+         <string/>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QPushButton" name="BtnMax">
+        <property name="cursor">
+         <cursorShape>PointingHandCursor</cursorShape>
+        </property>
+        <property name="text">
+         <string/>
+        </property>
+       </widget>
       </item>
       <item>
        <widget class="QPushButton" name="BtnClose">
