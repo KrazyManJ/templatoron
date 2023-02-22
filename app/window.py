@@ -2,7 +2,6 @@ import ctypes
 import os.path
 
 from PyQt5 import uic, QtGui
-from PyQt5.QtCore import QItemSelection
 from PyQt5.QtWidgets import *
 from qframelesswindow import FramelessWindow
 
@@ -46,9 +45,13 @@ class Window(FramelessWindow):
             self.TemplateListView.addItem(TemplateItem(os.path.abspath(os.path.join(pths,a))))
         self.TemplateListView.itemSelectionChanged.connect(self.handle_item_selection_changed)
 
-    def handle_item_selection_changed(self):
+    def is_something_selected(self):
         selected_items = self.TemplateListView.selectedItems()
-        if selected_items:
-            selected_item = selected_items[0]
-            if isinstance(selected_item, TemplateItem):
-                print(selected_item.Template.variables)
+        return selected_items is not None
+
+    def handle_item_selection_changed(self):
+        if not self.is_something_selected():
+            return
+        selected_item = self.TemplateListView.selectedItems()[0]
+        if isinstance(selected_item, TemplateItem):
+            print(selected_item.Template.variables)
