@@ -18,6 +18,8 @@ class Window(FramelessWindow):
 
     TemplateListView: QListWidget
 
+    DirectoryDisplay: QTreeWidget
+
     def change_path(self):
         a = QFileDialog.getExistingDirectory(self, "Select Directory", self.OutputPathInput.text())
         if a != "":
@@ -26,6 +28,25 @@ class Window(FramelessWindow):
     def create_project(self):
         #implement
         pass
+
+    def update_tree_view(self):
+        self.DirectoryDisplay.clear()
+        temp = self.get_selected().Template
+
+        def r(parent:QTreeWidget|QTreeWidgetItem,data:dict):
+            try:
+                for k,v in data.items():
+                    currP = QTreeWidgetItem([k])
+                    if isinstance(parent, QTreeWidget):
+                        parent.addTopLevelItem(currP)
+                    elif isinstance(parent, QTreeWidgetItem):
+                        parent.addChild(currP)
+                    if isinstance(v, dict):
+                        r(currP,v)
+            except Exception as e:
+                print(e)
+        r(self.DirectoryDisplay,temp.structure)
+        self.DirectoryDisplay.expandAll()
 
     def __init__(self, app):
         super().__init__()
@@ -49,9 +70,10 @@ class Window(FramelessWindow):
         selected_items = self.TemplateListView.selectedItems()
         return selected_items is not None
 
+    def get_selected(self) -> TemplateItem:
+        return self.TemplateListView.selectedItems()[0]
+
     def handle_item_selection_changed(self):
         if not self.is_something_selected():
             return
-        selected_item = self.TemplateListView.selectedItems()[0]
-        if isinstance(selected_item, TemplateItem):
-            print(selected_item.Template.variables)
+        self.update_tree_view()

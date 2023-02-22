@@ -21,6 +21,13 @@ class TemplatoronObject:
     icon: str = ""
 
     @staticmethod
+    def __sort_dict(d):
+        if not isinstance(d, dict):
+            return d
+        sorted_items = sorted(d.items(), key=lambda x: isinstance(x[1], dict))
+        return {k: TemplatoronObject.__sort_dict(v) for k, v in sorted_items}
+
+    @staticmethod
     def is_valid_file(
             path: str | bytes | PathLike
     ):
@@ -77,8 +84,10 @@ class TemplatoronObject:
                 r[val] = folder_scan(pth) if os.path.isdir(pth) else var_finder(open(pth, "r", encoding=ENC).read())
             return r
 
+
+
         R = TemplatoronObject()
-        R.structure = {os.path.basename(folder): folder_scan(folder)} if include_folder else folder_scan(folder)
+        R.structure = TemplatoronObject.__sort_dict({os.path.basename(folder): folder_scan(folder)})
         R.variables = [{"id":a,"displayname":a} for a in variables]
         return R
 
@@ -98,7 +107,7 @@ class TemplatoronObject:
             "name": self.name,
             "icon": self.icon,
             "variables": self.variables,
-            "structure": encrypt(self.structure)
+            "structure": encrypt(TemplatoronObject.__sort_dict(self.structure))
         }
         json.dump(RESULT, open(path if path.endswith(EXT) else path + EXT, "w", encoding=ENC), indent=4)
 
