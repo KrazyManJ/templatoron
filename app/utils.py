@@ -1,5 +1,17 @@
 import base64
 
+from PyQt5.QtGui import QColor
+from PyQt5.QtWidgets import QGraphicsDropShadowEffect, QWidget
+
+
+def apply_shadow(widget: QWidget, alpha: float, x: float = 0, y: float = 4, r: float = 8):
+    shadow = QGraphicsDropShadowEffect()
+    shadow.setBlurRadius(r)
+    shadow.setYOffset(y)
+    shadow.setXOffset(x)
+    shadow.setColor(QColor(0, 0, 0, alpha))
+    widget.setGraphicsEffect(shadow)
+
 
 def center_widget(app, widget):
     frameGm = widget.frameGeometry()

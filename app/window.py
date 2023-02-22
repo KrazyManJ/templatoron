@@ -7,11 +7,11 @@ from PyQt5.QtGui import QCursor
 from PyQt5.QtWidgets import *
 from qframelesswindow import FramelessWindow
 
-from app.src import templatoron
 from app import utils
 from app.components.templateitem import TemplateItem
 from app.components.titlebar import TitleBar
 from app.components.variableinput import VariableInput
+from app.src import templatoron
 
 
 class TemplatoronWindow(FramelessWindow):
@@ -23,10 +23,13 @@ class TemplatoronWindow(FramelessWindow):
     OutputPathInput: QLineEdit
 
     TemplateListView: QListWidget
-
     DirectoryDisplay: QTreeWidget
-
     VariableListContent: QWidget
+
+    # WIDGETS TO SHADOW
+    TemplateLabel: QLabel
+    DirectoryDisplayLabel: QLabel
+    VariableListLabel: QLabel
 
     def __init__(self, app):
         super().__init__()
@@ -45,6 +48,12 @@ class TemplatoronWindow(FramelessWindow):
             self.TemplateListView.addItem(TemplateItem(os.path.abspath(os.path.join(pths, a))))
         self.TemplateListView.itemSelectionChanged.connect(self.handle_item_selection_changed)
         self.set_content_state(False)
+
+        utils.apply_shadow(self.TemplateLabel, 20, r=30)
+        utils.apply_shadow(self.DirectoryDisplayLabel, 40)
+        utils.apply_shadow(self.VariableListLabel, 40)
+        utils.apply_shadow(self.CreateProjectBtn, 40)
+
 
     def change_path(self):
         a = QFileDialog.getExistingDirectory(self, "Select Directory", self.OutputPathInput.text())
@@ -70,7 +79,8 @@ class TemplatoronWindow(FramelessWindow):
         def r(parent: QTreeWidget | QTreeWidgetItem, data: dict):
             for k, v in data.items():
                 currP = QTreeWidgetItem([
-                    templatoron.parse_variable_values(k, {i.get_id(): i.get_value() for i in self.get_variables() if not i.is_empty()})
+                    templatoron.parse_variable_values(k, {i.get_id(): i.get_value() for i in self.get_variables() if
+                                                          not i.is_empty()})
                 ])
                 if isinstance(parent, QTreeWidget):
                     parent.addTopLevelItem(currP)
@@ -78,7 +88,6 @@ class TemplatoronWindow(FramelessWindow):
                     parent.addChild(currP)
                 if isinstance(v, dict):
                     r(currP, v)
-
 
         r(self.DirectoryDisplay, temp.structure)
         self.DirectoryDisplay.expandAll()
