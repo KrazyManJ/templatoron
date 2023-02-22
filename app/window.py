@@ -1,12 +1,13 @@
 import ctypes
 import os.path
 
-import pyvscode
 from PyQt5 import uic, QtGui
+from PyQt5.QtCore import QItemSelection
 from PyQt5.QtWidgets import *
 from qframelesswindow import FramelessWindow
 
 from app import utils
+from app.components.templateitem import TemplateItem
 from app.components.titlebar import TitleBar
 
 
@@ -15,6 +16,8 @@ class Window(FramelessWindow):
     OutputPathButton: QPushButton
     CreateProjectBtn: QPushButton
     OutputPathInput: QLineEdit
+
+    TemplateListView: QListWidget
 
     def change_path(self):
         a = QFileDialog.getExistingDirectory(self, "Select Directory", self.OutputPathInput.text())
@@ -37,3 +40,15 @@ class Window(FramelessWindow):
         self.CreateProjectBtn.clicked.connect(self.create_project)
         utils.center_widget(self.app,self)
         self.OutputPathInput.setText(os.path.join(os.path.join(os.environ['USERPROFILE']), 'Desktop'))
+
+        pths = os.path.join(__file__,os.path.pardir,os.path.pardir,"templatoron_template_files")
+        for a in os.listdir(pths):
+            self.TemplateListView.addItem(TemplateItem(os.path.abspath(os.path.join(pths,a))))
+        self.TemplateListView.itemSelectionChanged.connect(self.handle_item_selection_changed)
+
+    def handle_item_selection_changed(self):
+        selected_items = self.TemplateListView.selectedItems()
+        if selected_items:
+            selected_item = selected_items[0]
+            if isinstance(selected_item, TemplateItem):
+                print(selected_item.Template.variables)

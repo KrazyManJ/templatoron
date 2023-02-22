@@ -5,6 +5,9 @@
         "name": {
             "type": "string"
         },
+        "icon": {
+            "type": "string"
+        },
         "variables": {
             "type": "array",
             "items": {

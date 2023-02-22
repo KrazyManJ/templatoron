@@ -18,6 +18,7 @@ class TemplatoronObject:
     name: str = "Unnamed"
     structure: dict = {}
     variables: list[dict[str,str]] = []
+    icon: str = ""
 
     @staticmethod
     def is_valid_file(
@@ -43,7 +44,7 @@ class TemplatoronObject:
             raise Exception("Is not Templatoron file!")
 
         def decypt(d: dict):
-            if set(d.keys()) == {'displayname', 'id'} or set(d.keys()) == {'name','structure','variables'}: return d
+            if set(d.keys()) == {'displayname', 'id'} or set(d.keys()) == {'name','icon','structure','variables'}: return d
             r = {}
             for k, v in d.items():
                 r[k] = FERNET.decrypt(v.encode(ENC)).decode(ENC) if type(v) == str else v
@@ -52,6 +53,7 @@ class TemplatoronObject:
         R = TemplatoronObject()
         data: dict = json.load(open(path, "r", encoding=ENC), object_hook=decypt)
         R.name = data.get("name","Unnamed")
+        R.icon = data.get("icon","")
         R.structure = data.get("structure", {})
         R.variables = data.get("variables", [])
         return R
@@ -77,7 +79,7 @@ class TemplatoronObject:
 
         R = TemplatoronObject()
         R.structure = {os.path.basename(folder): folder_scan(folder)} if include_folder else folder_scan(folder)
-        R.variables = list(variables)
+        R.variables = [{"id":a,"displayname":a} for a in variables]
         return R
 
     def save(
@@ -94,10 +96,11 @@ class TemplatoronObject:
 
         RESULT = {
             "name": self.name,
+            "icon": self.icon,
             "variables": self.variables,
-            "structure": self.structure
+            "structure": encrypt(self.structure)
         }
-        json.dump(encrypt(RESULT), open(path if path.endswith(EXT) else path + EXT, "w", encoding=ENC), indent=4)
+        json.dump(RESULT, open(path if path.endswith(EXT) else path + EXT, "w", encoding=ENC), indent=4)
 
     def create_project(
             self,
