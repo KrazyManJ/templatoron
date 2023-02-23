@@ -95,9 +95,10 @@ class TemplatoronWindow(FramelessWindow):
 
         def r(parent: QTreeWidget | QTreeWidgetItem, data: dict):
             for k, v in data.items():
+                varvals = {i.get_id(): i.get_value() for i in self.get_variables() if
+                                                          not i.is_empty()}
                 currP = QTreeWidgetItem([
-                    templatoron.parse_variable_values(k, {i.get_id(): i.get_value() for i in self.get_variables() if
-                                                          not i.is_empty()})
+                    templatoron.parse_variable_values(k,varvals)
                 ])
                 if isinstance(parent, QTreeWidget):
                     parent.addTopLevelItem(currP)
@@ -105,6 +106,8 @@ class TemplatoronWindow(FramelessWindow):
                     parent.addChild(currP)
                 if isinstance(v, dict):
                     r(currP, v)
+                elif isinstance(v, str):
+                    currP.setToolTip(0,templatoron.parse_variable_values(v,varvals))
 
         r(self.DirectoryDisplay, temp.structure)
         self.DirectoryDisplay.expandAll()

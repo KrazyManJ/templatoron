@@ -429,6 +429,14 @@ QLabel {
                </item>
                <item>
                 <widget class="QTreeWidget" name="DirectoryDisplay">
+                 <property name="styleSheet">
+                  <string notr="true">QToolTip {
+	font: 8pt &quot;Fira Code&quot;;
+	color: #aaa;
+	background-color: #212121;
+	border: #AAAAAA solid 5px;
+}</string>
+                 </property>
                  <property name="verticalScrollBarPolicy">
                   <enum>Qt::ScrollBarAsNeeded</enum>
                  </property>
