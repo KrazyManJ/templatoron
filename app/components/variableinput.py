@@ -1,13 +1,17 @@
+from PyQt5.QtCore import QRegExp
+from PyQt5.QtGui import QRegExpValidator
 from PyQt5.QtWidgets import QFrame, QLineEdit, QLabel, QVBoxLayout, QSizePolicy
 
 from typing import TYPE_CHECKING
+
+from app.src import templatoron
 
 if TYPE_CHECKING:
     from app.window import TemplatoronWindow
 
 
 class VariableInput(QFrame):
-    def __init__(self,window:"TemplatoronWindow",var_id,label):
+    def __init__(self,window:"TemplatoronWindow",var_id,label,file_mask=False):
         super().__init__()
         sizePolicy = QSizePolicy(QSizePolicy.Preferred, QSizePolicy.Fixed)
         sizePolicy.setHeightForWidth(self.sizePolicy().hasHeightForWidth())
@@ -42,6 +46,10 @@ class VariableInput(QFrame):
         self.input = QLineEdit(self.input_frame)
         self.input_layout.addWidget(self.input)
         self.input.textEdited.connect(window.variableChange)
+        if file_mask:
+            regex = QRegExp(templatoron.ILLEGAL_CHARS)
+            validator = QRegExpValidator(regex)
+            self.input.setValidator(validator)
 
     def get_id(self):
         return self.id

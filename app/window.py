@@ -12,6 +12,7 @@ from app.components.templateitem import TemplateItem
 from app.components.titlebar import TitleBar
 from app.components.variableinput import VariableInput
 from app.src import templatoron
+from app.src.templatoron import TemplatoronResponse
 
 
 class TemplatoronWindow(FramelessWindow):
@@ -54,7 +55,6 @@ class TemplatoronWindow(FramelessWindow):
         utils.apply_shadow(self.VariableListLabel, 40)
         utils.apply_shadow(self.CreateProjectBtn, 40)
 
-
     def change_path(self):
         a = QFileDialog.getExistingDirectory(self, "Select Directory", self.OutputPathInput.text())
         if a != "":
@@ -68,7 +68,24 @@ class TemplatoronWindow(FramelessWindow):
             pth = self.OutputPathInput.text()
             varvals = {i.get_id(): i.get_value() for i in self.get_variables()}
             respath = os.path.join(pth, templatoron.parse_variable_values(list(temp.structure.keys())[0], varvals))
-            temp.create_project(self.OutputPathInput.text(), **varvals)
+            response = temp.create_project(self.OutputPathInput.text(), **varvals)
+            box = QMessageBox()
+            if response is TemplatoronResponse.ACCESS_DENIED:
+                box.setIcon(QMessageBox.Critical)
+                box.setWindowTitle("Templatoron - Error")
+                box.setText("Access denied by operating system while trying to create project!")
+                box.exec()
+                return
+            if response is TemplatoronResponse.ALREADY_EXIST:
+                box.setIcon(QMessageBox.Critical)
+                box.setWindowTitle("Templatoron - Error")
+                box.setText("There is already existing project with these parameters!")
+                box.exec()
+                return
+            box.setIcon(QMessageBox.Information)
+            box.setWindowTitle("Templatoron - Success")
+            box.setText("Successfully created project!")
+            box.exec()
             os.system(f'explorer /select,"{respath}"')
             self.close()
 
@@ -114,7 +131,10 @@ class TemplatoronWindow(FramelessWindow):
             self.VariableListContent.layout().removeWidget(child)
             child.deleteLater()
         for var in self.get_selected().Template.variables:
-            self.VariableListContent.layout().addWidget(VariableInput(self, var["id"], var["displayname"]))
+            mask =self.get_selected().Template.is_var_used_in_file_system(var["id"])
+            self.VariableListContent.layout().addWidget(
+                VariableInput(self, var["id"], var["displayname"],file_mask=mask)
+            )
         self.update_tree_view()
         self.set_create_button_state(len([i for i in self.get_variables() if i.is_empty()]) == 0)
 
@@ -130,3 +150,4 @@ class TemplatoronWindow(FramelessWindow):
         opacity_effect.setOpacity(0.5)
         self.CreateProjectBtn.setGraphicsEffect(None if state else opacity_effect)
         self.CreateProjectBtn.setCursor(QCursor(Qt.PointingHandCursor if state else Qt.ForbiddenCursor))
+        self.CreateProjectBtn.setToolTip(None if state else "You need to enter all parameters before creation.")

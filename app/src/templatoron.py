@@ -1,6 +1,7 @@
 import json
 import os
 import re
+from enum import Enum
 from os import PathLike
 
 import jsonschema
@@ -11,14 +12,22 @@ from tokens import FERNET_KEY
 FERNET = Fernet(FERNET_KEY)
 EXT = ".json"
 ENC = "latin-1"
+VAR_PREFIX = "@#"
+ILLEGAL_CHARS = '[^\\\\/:*?"<>|]*'
 
 SCHEMA_PATH = os.path.join(__file__, os.path.pardir, "templatoron_schema.json")
 
 
 def parse_variable_values(txt: str, variable_values: dict[str,str]):
     for k, v in variable_values.items():
-        txt = txt.replace(f"@#{k}", v)
+        txt = txt.replace(f"{VAR_PREFIX}{k}", v)
     return txt
+
+class TemplatoronResponse(Enum):
+    OK = 0
+    ALREADY_EXIST = 1
+    ACCESS_DENIED = 2
+    VARIABLES_MISSING = 3
 
 class TemplatoronObject:
     name: str = "Unnamed"
@@ -27,11 +36,23 @@ class TemplatoronObject:
     icon: str = ""
 
     @staticmethod
-    def __sort_dict(d):
-        if not isinstance(d, dict):
-            return d
-        sorted_items = sorted(d.items(), key=lambda x: isinstance(x[1], dict))
-        return {k: TemplatoronObject.__sort_dict(v) for k, v in sorted_items}
+    def __sort_dict(data):
+        def custom_sort(key):
+            value = data[key]
+            if isinstance(value, dict):
+                return 0
+            else:
+                return 1
+        sorted_keys = sorted(data.keys(), key=custom_sort)
+        sorted_dict = {}
+        for key in sorted_keys:
+            value = data[key]
+            if isinstance(value, dict):
+                sorted_dict[key] = TemplatoronObject.__sort_dict(value)
+            else:
+                sorted_dict[key] = value
+
+        return sorted_dict
 
     @staticmethod
     def is_valid_file(
@@ -79,7 +100,7 @@ class TemplatoronObject:
         variables = set({})
 
         def var_finder(txt: str):
-            for r in re.findall("(?<=@#)[a-z_A-Z]+", txt):
+            for r in re.findall(f"(?<={VAR_PREFIX})[a-z_A-Z]+", txt):
                 variables.add(r)
             return txt
 
@@ -113,15 +134,16 @@ class TemplatoronObject:
             "name": self.name,
             "icon": self.icon,
             "variables": self.variables,
-            "structure": encrypt(TemplatoronObject.__sort_dict(self.structure))
+            "structure": TemplatoronObject.__sort_dict(encrypt(self.structure))
         }
-        json.dump(RESULT, open(path if path.endswith(EXT) else path + EXT, "w", encoding=ENC), indent=4)
+        print(TemplatoronObject.__sort_dict(self.structure))
+        json.dump(RESULT, open(path if path.endswith(EXT) else path + EXT, "w", encoding=ENC), indent=4, sort_keys=False)
 
     def create_project(
             self,
             output_path: str | bytes | PathLike,
             **variable_values: str
-    ):
+    ) -> TemplatoronResponse:
         def file_creator(parent, file_or_folder_dict: dict):
             for k, v in file_or_folder_dict.items():
                 fname = os.path.join(parent, parse_variable_values(k, variable_values))
@@ -133,6 +155,25 @@ class TemplatoronObject:
 
         srcvarset = set([a["id"] for a in self.variables])
         varset = set(variable_values.keys())
+        if not os.access(output_path, os.R_OK):
+            return TemplatoronResponse.ACCESS_DENIED
+        if os.path.exists(os.path.join(output_path,parse_variable_values(list(self.structure.keys())[0],variable_values))):
+            return TemplatoronResponse.ALREADY_EXIST
+        os.makedirs(output_path,exist_ok=True)
         if varset != srcvarset:
-            raise Exception("Missing variables: " + ", ".join(srcvarset.difference(varset)))
+            return TemplatoronResponse.VARIABLES_MISSING
         file_creator(output_path, self.structure)
+        return TemplatoronResponse.OK
+
+    def is_var_used_in_file_system(self,varid: str):
+        if varid not in [i["id"] for i in self.variables]:
+            return False
+        def file_name_checker(data_dict: dict):
+            for k, v in data_dict.items():
+                if k.__contains__(VAR_PREFIX+varid):
+                    return True
+                if type(v) is dict:
+                    if file_name_checker(v):
+                        return True
+            return False
+        return file_name_checker(self.structure)
