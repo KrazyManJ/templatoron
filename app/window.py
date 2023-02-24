@@ -1,6 +1,8 @@
 import ctypes
+import json
 import os.path
 
+import pyvscode
 from PyQt5 import uic, QtGui
 from PyQt5.QtCore import Qt
 from PyQt5.QtGui import QCursor
@@ -16,26 +18,34 @@ from app.src.templatoron import TemplatoronResponse
 
 
 class TemplatoronWindow(FramelessWindow):
+    # ===================================================================================
+    # WIDGETS
+    # ===================================================================================
+
     MainFrame: QFrame
     MainContentFrame: QFrame
-
     OutputPathButton: QPushButton
     CreateProjectBtn: QPushButton
     OutputPathInput: QLineEdit
-
+    CheckVSCode: QCheckBox
+    CheckFileExplorer: QCheckBox
     TemplateListView: QListWidget
     DirectoryDisplay: QTreeWidget
     VariableListContent: QWidget
-
     # WIDGETS TO SHADOW
     TemplateLabel: QLabel
     DirectoryDisplayLabel: QLabel
     VariableListLabel: QLabel
 
-    def __init__(self, app):
+    # ===================================================================================
+    # INIT
+    # ===================================================================================
+
+    def __init__(self, app: QApplication):
         super().__init__()
         self.app = app
         uic.loadUi(os.path.join(__file__, os.path.pardir, "design", "main_window.ui"), self)
+        self.shadowEngine()
         for font in ["inter.ttf", "firacode.ttf"]:
             QtGui.QFontDatabase.addApplicationFont(os.path.join(__file__, os.path.pardir, "fonts", font))
         ctypes.windll.shell32.SetCurrentProcessExplicitAppUserModelID("me.KrazyManJ.Templatoron.1.0.0")
@@ -50,15 +60,50 @@ class TemplatoronWindow(FramelessWindow):
         self.TemplateListView.itemSelectionChanged.connect(self.handle_item_selection_changed)
         self.set_content_state(False)
 
+
+        if not pyvscode.is_present():
+            self.CheckVSCode.deleteLater()
+
+        self.loadConfiguration()
+
+    # ===================================================================================
+    # SHADOW ENGINE
+    # ===================================================================================
+
+    def shadowEngine(self):
         utils.apply_shadow(self.TemplateLabel, 20, r=30)
         utils.apply_shadow(self.DirectoryDisplayLabel, 40)
         utils.apply_shadow(self.VariableListLabel, 40)
         utils.apply_shadow(self.CreateProjectBtn, 40)
 
+
+    # ===================================================================================
+    # CONFIGURATION LOADER/SAVER
+    # ===================================================================================
+
+    def loadConfiguration(self):
+        data: dict = json.load(open("configuration.json", "r"))
+        self.CheckFileExplorer.setChecked(data.get("open_file_explorer", False))
+        self.CheckVSCode.setChecked(data.get("open_vscode", False))
+
+    def closeEvent(self, a0: QtGui.QCloseEvent) -> None:
+        json.dump({
+            "open_file_explorer": self.CheckFileExplorer.isChecked(),
+            "open_vscode": self.CheckVSCode.isChecked()
+        }, open("configuration.json", "w"))
+
+    # ===================================================================================
+    # PATH CHANGER
+    # ===================================================================================
+
     def change_path(self):
         a = QFileDialog.getExistingDirectory(self, "Select Directory", self.OutputPathInput.text())
         if a != "":
             self.OutputPathInput.setText(os.path.abspath(a))
+
+    # ===================================================================================
+    # PROJECT CREATION
+    # ===================================================================================
 
     def create_project(self):
         if not self.is_something_selected():
@@ -71,23 +116,21 @@ class TemplatoronWindow(FramelessWindow):
             response = temp.create_project(self.OutputPathInput.text(), **varvals)
             box = QMessageBox()
             if response is TemplatoronResponse.ACCESS_DENIED:
-                box.setIcon(QMessageBox.Critical)
-                box.setWindowTitle("Templatoron - Error")
-                box.setText("Access denied by operating system while trying to create project!")
-                box.exec()
+                utils.DialogCreator.Warn("Access denied by operating system while trying to create project!")
                 return
             if response is TemplatoronResponse.ALREADY_EXIST:
-                box.setIcon(QMessageBox.Critical)
-                box.setWindowTitle("Templatoron - Error")
-                box.setText("There is already existing project with these parameters!")
-                box.exec()
+                utils.DialogCreator.Warn("There is already existing project with these parameters!")
                 return
-            box.setIcon(QMessageBox.Information)
-            box.setWindowTitle("Templatoron - Success")
-            box.setText("Successfully created project!")
-            box.exec()
-            os.system(f'explorer /select,"{respath}"')
+            utils.DialogCreator.Info("Successfully created project!")
+            if self.CheckFileExplorer.isChecked():
+                os.system(f'explorer /select,"{respath}"')
+            if self.CheckVSCode.isChecked():
+                pyvscode.open_folder(respath)
             self.close()
+
+    # ===================================================================================
+    # TREE VIEW
+    # ===================================================================================
 
     def update_tree_view(self):
         self.DirectoryDisplay.clear()
@@ -95,11 +138,8 @@ class TemplatoronWindow(FramelessWindow):
 
         def r(parent: QTreeWidget | QTreeWidgetItem, data: dict):
             for k, v in data.items():
-                varvals = {i.get_id(): i.get_value() for i in self.get_variables() if
-                                                          not i.is_empty()}
-                currP = QTreeWidgetItem([
-                    templatoron.parse_variable_values(k,varvals)
-                ])
+                varvals = {i.get_id(): i.get_value() for i in self.get_variables() if not i.is_empty()}
+                currP = QTreeWidgetItem([templatoron.parse_variable_values(k, varvals)])
                 if isinstance(parent, QTreeWidget):
                     parent.addTopLevelItem(currP)
                 elif isinstance(parent, QTreeWidgetItem):
@@ -107,10 +147,14 @@ class TemplatoronWindow(FramelessWindow):
                 if isinstance(v, dict):
                     r(currP, v)
                 elif isinstance(v, str):
-                    currP.setToolTip(0,templatoron.parse_variable_values(v,varvals))
+                    currP.setToolTip(0, templatoron.parse_variable_values(v, varvals))
 
         r(self.DirectoryDisplay, temp.structure)
         self.DirectoryDisplay.expandAll()
+
+    # ===================================================================================
+    # PARAMETERS
+    # ===================================================================================
 
     def get_variables(self) -> list[VariableInput]:
         return [i for i in self.VariableListContent.children() if isinstance(i, VariableInput)]
@@ -118,6 +162,10 @@ class TemplatoronWindow(FramelessWindow):
     def variableChange(self):
         self.update_tree_view()
         self.set_create_button_state(len([i for i in self.get_variables() if i.is_empty()]) == 0)
+
+    # ===================================================================================
+    # TEMPLATE SELECTION
+    # ===================================================================================
 
     def is_something_selected(self):
         selected_items = self.TemplateListView.selectedItems()
@@ -134,12 +182,16 @@ class TemplatoronWindow(FramelessWindow):
             self.VariableListContent.layout().removeWidget(child)
             child.deleteLater()
         for var in self.get_selected().Template.variables:
-            mask =self.get_selected().Template.is_var_used_in_file_system(var["id"])
+            mask = self.get_selected().Template.is_var_used_in_file_system(var["id"])
             self.VariableListContent.layout().addWidget(
-                VariableInput(self, var["id"], var["displayname"],file_mask=mask)
+                VariableInput(self, var["id"], var["displayname"], file_mask=mask)
             )
         self.update_tree_view()
         self.set_create_button_state(len([i for i in self.get_variables() if i.is_empty()]) == 0)
+
+    # ===================================================================================
+    # STATES CHANGES
+    # ===================================================================================
 
     def set_content_state(self, state: bool):
         opacity_effect = QGraphicsOpacityEffect()

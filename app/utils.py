@@ -1,7 +1,7 @@
 import base64
 
 from PyQt5.QtGui import QColor
-from PyQt5.QtWidgets import QGraphicsDropShadowEffect, QWidget
+from PyQt5.QtWidgets import QGraphicsDropShadowEffect, QWidget, QMessageBox
 
 
 def apply_shadow(widget: QWidget, alpha: float, x: float = 0, y: float = 4, r: float = 8):
@@ -19,7 +19,28 @@ def center_widget(app, widget):
     widget.move(frameGm.topLeft())
 
 
+class DialogCreator:
+    @staticmethod
+    def Info(message: str):
+        box = QMessageBox()
+        box.setIcon(QMessageBox.Information)
+        box.setWindowTitle("Templatoron - Success")
+        box.setText(message)
+        box.exec()
+
+    @staticmethod
+    def Warn(message: str):
+        box = QMessageBox()
+        box.setIcon(QMessageBox.Critical)
+        box.setWindowTitle("Templatoron - Error")
+        box.setText(message)
+        box.exec()
+
+
 def image_to_base_bytes(path: str):
+    """
+    Used to create icons for templatoron files
+    """
     with open(path, "rb") as f:
         image_bytes = f.read()
     return base64.b64encode(image_bytes).decode()

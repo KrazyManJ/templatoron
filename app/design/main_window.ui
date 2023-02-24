@@ -51,12 +51,22 @@ QLineEdit {
 #OutputPathButton {
 	border-image: url(:/content/folder-open.svg)
 }
+#ButtonsFrame QCheckBox {
+	color: white;
+	font: 8pt &quot;Inter&quot;;
+}
 #ButtonsFrame QPushButton {
 	padding: 15px;
 	font: 15pt &quot;Inter&quot;;
 	background: #575757;
 	border-radius: 10px;
 	color: white;
+}
+#ButtonsFrame QPushButton:hover {
+	background: #666;
+}
+#ButtonsFrame QPushButton:pressed {
+	background: #777;
 }
 #TemplateListView{
 	background: transparent;
@@ -624,6 +634,38 @@ QLabel {
                <property name="bottomMargin">
                 <number>0</number>
                </property>
+               <item>
+                <widget class="QFrame" name="CheckBoxesFrame">
+                 <property name="frameShape">
+                  <enum>QFrame::StyledPanel</enum>
+                 </property>
+                 <property name="frameShadow">
+                  <enum>QFrame::Raised</enum>
+                 </property>
+                 <layout class="QGridLayout" name="gridLayout">
+                  <item row="0" column="0">
+                   <widget class="QCheckBox" name="CheckFileExplorer">
+                    <property name="text">
+                     <string>Show in File Explorer</string>
+                    </property>
+                    <property name="checked">
+                     <bool>true</bool>
+                    </property>
+                   </widget>
+                  </item>
+                  <item row="1" column="0">
+                   <widget class="QCheckBox" name="CheckVSCode">
+                    <property name="enabled">
+                     <bool>true</bool>
+                    </property>
+                    <property name="text">
+                     <string>Open in Visual Studio Code</string>
+                    </property>
+                   </widget>
+                  </item>
+                 </layout>
+                </widget>
+               </item>
                <item>
                 <spacer name="horizontalSpacer">
                  <property name="orientation">
