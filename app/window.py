@@ -60,7 +60,6 @@ class TemplatoronWindow(FramelessWindow):
         self.TemplateListView.itemSelectionChanged.connect(self.handle_item_selection_changed)
         self.set_content_state(False)
 
-
         if not pyvscode.is_present():
             self.CheckVSCode.deleteLater()
 
@@ -75,7 +74,6 @@ class TemplatoronWindow(FramelessWindow):
         utils.apply_shadow(self.DirectoryDisplayLabel, 40)
         utils.apply_shadow(self.VariableListLabel, 40)
         utils.apply_shadow(self.CreateProjectBtn, 40)
-
 
     # ===================================================================================
     # CONFIGURATION LOADER/SAVER

@@ -155,14 +155,15 @@ class TemplatoronObject:
 
         srcvarset = set([a["id"] for a in self.variables])
         varset = set(variable_values.keys())
-        if not os.access(output_path, os.R_OK):
-            return TemplatoronResponse.ACCESS_DENIED
         if os.path.exists(os.path.join(output_path,parse_variable_values(list(self.structure.keys())[0],variable_values))):
             return TemplatoronResponse.ALREADY_EXIST
-        os.makedirs(output_path,exist_ok=True)
         if varset != srcvarset:
             return TemplatoronResponse.VARIABLES_MISSING
-        file_creator(output_path, self.structure)
+        try:
+            os.makedirs(output_path,exist_ok=True)
+            file_creator(output_path, self.structure)
+        except PermissionError as e:
+            return TemplatoronResponse.ACCESS_DENIED
         return TemplatoronResponse.OK
 
     def is_var_used_in_file_system(self,varid: str):

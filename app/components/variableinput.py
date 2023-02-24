@@ -50,6 +50,7 @@ class VariableInput(QFrame):
             regex = QRegExp(templatoron.ILLEGAL_CHARS)
             validator = QRegExpValidator(regex)
             self.input.setValidator(validator)
+            self.input.setMaxLength(255)
 
     def get_id(self):
         return self.id

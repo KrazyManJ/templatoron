@@ -643,6 +643,24 @@ QLabel {
                   <enum>QFrame::Raised</enum>
                  </property>
                  <layout class="QGridLayout" name="gridLayout">
+                  <property name="leftMargin">
+                   <number>10</number>
+                  </property>
+                  <property name="topMargin">
+                   <number>10</number>
+                  </property>
+                  <property name="rightMargin">
+                   <number>10</number>
+                  </property>
+                  <property name="bottomMargin">
+                   <number>10</number>
+                  </property>
+                  <property name="horizontalSpacing">
+                   <number>20</number>
+                  </property>
+                  <property name="verticalSpacing">
+                   <number>10</number>
+                  </property>
                   <item row="0" column="0">
                    <widget class="QCheckBox" name="CheckFileExplorer">
                     <property name="text">
