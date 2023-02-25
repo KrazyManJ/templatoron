@@ -45,6 +45,7 @@ class TemplatoronWindow(FramelessWindow):
         super().__init__()
         self.app = app
         uic.loadUi(os.path.join(__file__, os.path.pardir, "design", "main_window.ui"), self)
+        self.loadConfiguration()
         self.shadowEngine()
         for font in ["inter.ttf", "firacode.ttf"]:
             QtGui.QFontDatabase.addApplicationFont(os.path.join(__file__, os.path.pardir, "fonts", font))
@@ -53,7 +54,6 @@ class TemplatoronWindow(FramelessWindow):
         self.OutputPathButton.clicked.connect(self.change_path)
         self.CreateProjectBtn.clicked.connect(self.create_project)
         utils.center_widget(self.app, self)
-        self.OutputPathInput.setText(os.path.join(os.path.join(os.environ['USERPROFILE']), 'Desktop'))
         pths = "templates"
         for a in os.listdir(pths):
             self.TemplateListView.addItem(TemplateItem(os.path.abspath(os.path.join(pths, a))))
@@ -63,7 +63,6 @@ class TemplatoronWindow(FramelessWindow):
         if not pyvscode.is_present():
             self.CheckVSCode.deleteLater()
 
-        self.loadConfiguration()
 
     # ===================================================================================
     # SHADOW ENGINE
@@ -79,16 +78,29 @@ class TemplatoronWindow(FramelessWindow):
     # CONFIGURATION LOADER/SAVER
     # ===================================================================================
 
+    @staticmethod
+    def defaultPath():
+        if os.name == "nt":
+            return os.path.join(os.path.join(os.environ['USERPROFILE']), 'Desktop')
+        return os.path.expanduser("~/Desktop")
+
     def loadConfiguration(self):
         data: dict = json.load(open("configuration.json", "r"))
+        oPath = os.path.abspath(data.get("output_path",self.defaultPath()))
+        if os.path.isdir(oPath):
+            self.OutputPathInput.setText(oPath)
         self.CheckFileExplorer.setChecked(data.get("open_file_explorer", False))
         self.CheckVSCode.setChecked(data.get("open_vscode", False))
 
-    def closeEvent(self, a0: QtGui.QCloseEvent) -> None:
+    def saveConfiguration(self):
         json.dump({
+            "output_path": self.OutputPathInput.text(),
             "open_file_explorer": self.CheckFileExplorer.isChecked(),
             "open_vscode": self.CheckVSCode.isChecked()
-        }, open("configuration.json", "w"))
+        }, open("configuration.json", "w"), indent=4)
+
+    def closeEvent(self, a0: QtGui.QCloseEvent) -> None:
+        self.saveConfiguration()
 
     # ===================================================================================
     # PATH CHANGER

@@ -1,1 +1,5 @@
-{"open_file_explorer": true, "open_vscode": false}
+{
+    "output_path": "D:\\",
+    "open_file_explorer": true,
+    "open_vscode": false
+}
