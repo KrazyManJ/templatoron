@@ -85,6 +85,8 @@ class TemplatoronWindow(FramelessWindow):
         return os.path.expanduser("~/Desktop")
 
     def loadConfiguration(self):
+        if not os.path.exists("configuration.json"):
+            open("configuration.json","w").write("{}")
         data: dict = json.load(open("configuration.json", "r"))
         oPath = os.path.abspath(data.get("output_path",self.defaultPath()))
         if os.path.isdir(oPath):
