@@ -54,6 +54,7 @@ QLineEdit {
 }
 #ButtonsFrame QPushButton {
 	padding: 15px;
+	min-width: 100px;
 	font: 15pt &quot;Inter&quot;;
 	background: #575757;
 	border-radius: 10px;
@@ -456,7 +457,7 @@ QLabel {
                <item>
                 <widget class="QLabel" name="DirectoryDisplayLabel">
                  <property name="text">
-                  <string>Project Tree</string>
+                  <string>Folder &amp; File Tree</string>
                  </property>
                  <property name="alignment">
                   <set>Qt::AlignCenter</set>
@@ -793,7 +794,7 @@ QLabel {
                   <cursorShape>PointingHandCursor</cursorShape>
                  </property>
                  <property name="text">
-                  <string>Create Project</string>
+                  <string>Create</string>
                  </property>
                 </widget>
                </item>
