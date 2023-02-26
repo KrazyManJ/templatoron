@@ -1,11 +1,12 @@
 import ctypes
 import json
 import os.path
+import subprocess
 
-import pyvscode
+import pyvscode  # type: ignore
 from PyQt5 import uic, QtGui
 from PyQt5.QtCore import Qt
-from PyQt5.QtGui import QCursor
+from PyQt5.QtGui import QCursor, QIcon
 from PyQt5.QtWidgets import *
 from qframelesswindow import FramelessWindow
 
@@ -28,15 +29,24 @@ class TemplatoronWindow(FramelessWindow):
     CreateProjectBtn: QPushButton
     OutputPathInput: QLineEdit
     CheckCloseApp: QCheckBox
-    CheckVSCode: QCheckBox
-    CheckFileExplorer: QCheckBox
+    ComboOpenVia: QComboBox
     TemplateListView: QListWidget
     DirectoryDisplay: QTreeWidget
     VariableListContent: QWidget
-    # WIDGETS TO SHADOW
     TemplateLabel: QLabel
     DirectoryDisplayLabel: QLabel
     VariableListLabel: QLabel
+
+    @staticmethod
+    def pycharm_path():
+        jetbrains = os.path.join(os.path.abspath(r"C:\\"), "Program Files", "JetBrains")
+        pycharm = os.path.join(jetbrains, [i for i in os.listdir(jetbrains) if "PyCharm" in i][0])
+        exe = os.path.join(pycharm, "bin", "pycharm64.exe")
+        return exe
+
+    COMBO_DATA = [("Nothing", "nothing", lambda: True), ("File Explorer", "file_explorer", lambda: True),
+        ("Visual Studio Code", "vscode", lambda: pyvscode.is_present()),
+        ("PyCharm", "pycharm", lambda: os.path.exists(TemplatoronWindow.pycharm_path())), ]
 
     # ===================================================================================
     # INIT
@@ -46,27 +56,25 @@ class TemplatoronWindow(FramelessWindow):
         super().__init__()
         self.app = app
         uic.loadUi(os.path.join(__file__, os.path.pardir, "design", "main_window.ui"), self)
+        for name, icon, pred in self.COMBO_DATA:
+            if pred():
+                self.ComboOpenVia.addItem(QIcon(f":/open_via/open_icons/{icon}.svg"), name)
         self.loadConfiguration()
         self.shadowEngine()
         for font in ["inter.ttf", "firacode.ttf"]:
             QtGui.QFontDatabase.addApplicationFont(os.path.join(__file__, os.path.pardir, "fonts", font))
         ctypes.windll.shell32.SetCurrentProcessExplicitAppUserModelID("me.KrazyManJ.Templatoron.1.0.0")
         self.setTitleBar(TitleBar(self))
-        self.OutputPathButton.clicked.connect(self.change_path)
-        self.CreateProjectBtn.clicked.connect(self.create_project)
+        self.OutputPathButton.clicked.connect(self.change_path)  # type: ignore
+        self.CreateProjectBtn.clicked.connect(self.create_project)  # type: ignore
         utils.center_widget(self.app, self)
         pths = "templates"
         for a in os.listdir(pths):
             self.TemplateListView.addItem(TemplateItem(os.path.abspath(os.path.join(pths, a))))
         self.TemplateListView.sortItems(Qt.AscendingOrder)
-        self.TemplateListView.itemSelectionChanged.connect(self.handle_item_selection_changed)
+        self.TemplateListView.itemSelectionChanged.connect(self.handle_item_selection_changed)  # type: ignore
         self.set_content_state(False)
-
-        if not pyvscode.is_present():
-            self.CheckVSCode.deleteLater()
-
         self.VariableListLabel.hide()
-
 
     # ===================================================================================
     # SHADOW ENGINE
@@ -90,22 +98,19 @@ class TemplatoronWindow(FramelessWindow):
 
     def loadConfiguration(self):
         if not os.path.exists("configuration.json"):
-            open("configuration.json","w").write("{}")
+            open("configuration.json", "w").write("{}")
         data: dict = json.load(open("configuration.json", "r"))
-        oPath = os.path.abspath(data.get("output_path",self.defaultPath()))
+        oPath = os.path.abspath(data.get("output_path", self.defaultPath()))
         if os.path.isdir(oPath):
             self.OutputPathInput.setText(oPath)
         self.CheckCloseApp.setChecked(data.get("close_app", False))
-        self.CheckFileExplorer.setChecked(data.get("open_file_explorer", False))
-        self.CheckVSCode.setChecked(data.get("open_vscode", False))
+        open_via = data.get("open_via", "Nothing")
+        available = [name for name, icon, pred in self.COMBO_DATA if pred]
+        self.ComboOpenVia.setCurrentText(open_via if open_via in available else "Nothing")
 
     def saveConfiguration(self):
-        json.dump({
-            "output_path": self.OutputPathInput.text(),
-            "close_app": self.CheckCloseApp.isChecked(),
-            "open_file_explorer": self.CheckFileExplorer.isChecked(),
-            "open_vscode": self.CheckVSCode.isChecked()
-        }, open("configuration.json", "w"), indent=4)
+        json.dump({"output_path": self.OutputPathInput.text(), "close_app": self.CheckCloseApp.isChecked(),
+            "open_via": self.ComboOpenVia.currentText()}, open("configuration.json", "w"), indent=4)
 
     def closeEvent(self, a0: QtGui.QCloseEvent) -> None:
         self.saveConfiguration()
@@ -115,7 +120,7 @@ class TemplatoronWindow(FramelessWindow):
     # ===================================================================================
 
     def change_path(self):
-        a = QFileDialog.getExistingDirectory(self, "Select Directory", self.OutputPathInput.text())
+        a = QFileDialog.getExistingDirectory(self, "Select Directory", self.OutputPathInput.text())  # type: ignore
         if a != "":
             self.OutputPathInput.setText(os.path.abspath(a))
 
@@ -140,11 +145,15 @@ class TemplatoronWindow(FramelessWindow):
                 utils.DialogCreator.Warn("There is already existing project with these parameters!")
                 return
             utils.DialogCreator.Info("Successfully created project!")
-            if self.CheckFileExplorer.isChecked():
+            openVia = self.ComboOpenVia.currentText()
+            if openVia == "File Explorer":
                 os.system(f'explorer /select,"{respath}"')
-            if self.CheckVSCode.isChecked():
+            elif openVia == "Visual Studio Code":
                 pyvscode.open_folder(respath)
-            self.close()
+            elif openVia == "PyCharm":
+                subprocess.Popen([self.pycharm_path(), respath])
+            if self.CheckCloseApp.isChecked():
+                self.close()
 
     # ===================================================================================
     # TREE VIEW
@@ -202,8 +211,7 @@ class TemplatoronWindow(FramelessWindow):
         for var in self.get_selected().Template.variables:
             mask = self.get_selected().Template.is_var_used_in_file_system(var["id"])
             self.VariableListContent.layout().addWidget(
-                VariableInput(self, var["id"], var["displayname"], file_mask=mask)
-            )
+                VariableInput(self, var["id"], var["displayname"], file_mask=mask))
         if self.VariableListContent.layout().count() == 0:
             self.VariableListLabel.hide()
             self.set_create_button_state(True)
@@ -211,7 +219,6 @@ class TemplatoronWindow(FramelessWindow):
             self.VariableListLabel.show()
             self.set_create_button_state(len([i for i in self.get_variables() if i.is_empty()]) == 0)
         self.update_tree_view()
-
 
     # ===================================================================================
     # STATES CHANGES

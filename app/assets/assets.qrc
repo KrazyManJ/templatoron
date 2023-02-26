@@ -5,6 +5,12 @@
     <file>minus.svg</file>
     <file>x.svg</file>
   </qresource>
+  <qresource prefix="open_via">
+    <file>open_icons/nothing.svg</file>
+    <file>open_icons/file_explorer.svg</file>
+    <file>open_icons/pycharm.svg</file>
+    <file>open_icons/vscode.svg</file>
+  </qresource>
   <qresource prefix="content">
     <file>folder-open.svg</file>
   </qresource>

@@ -32,9 +32,6 @@
 	color: white;
 	font: 25pt &quot;Inter&quot;;
 }
-#BottomFrame {
-	max-height: 150px;
-}
 #OutputPathFrame {
 	background: #141414;
 	max-height: 40px;
@@ -84,13 +81,6 @@ QLineEdit {
 	background: #222;
 	border : 1px solid #666;
 	color: white;
-}
-#TemplateListView::item:selected &gt; * {
-    background-color: transparent;
-}
-#TemplateListView::item:selected QIcon {
-    background-color: transparent;
-    border: none;
 }
 QScrollBar:vertical{
 	width: 20px;
@@ -157,6 +147,32 @@ QLabel {
 #DirectoryDisplayLabel, #VariableListLabel{
 	font: 13pt &quot;Inter&quot;;
 	color: #aaa;
+}
+#ComboOpenVia {
+	border: 1px solid #666;
+	border-radius: 10px;
+	padding: 7px;
+	background: #141414;
+	color: white;
+	font: 10pt &quot;Inter&quot;;
+}
+#ComboOpenVia::drop-down  {
+	border: none;
+	image: none;
+	outline: none;
+	background: transparent;
+}
+#ComboOpenVia QListView {
+	background: #141414;
+	outline: 0;
+	color:white;
+	padding: 2px;
+    selection-background-color: #2B2B2B;
+    border: 1px solid #666;
+	border-radius: 10px;
+}
+#CheckCloseApp {
+	margin-left: 10px 5px;
 }</string>
   </property>
   <layout class="QHBoxLayout" name="horizontalLayout">
@@ -262,6 +278,9 @@ QLabel {
      </property>
      <property name="cursor">
       <cursorShape>ArrowCursor</cursorShape>
+     </property>
+     <property name="styleSheet">
+      <string notr="true"/>
      </property>
      <property name="frameShape">
       <enum>QFrame::StyledPanel</enum>
@@ -496,7 +515,7 @@ QLabel {
            <property name="maximumSize">
             <size>
              <width>16777215</width>
-             <height>152</height>
+             <height>16777215</height>
             </size>
            </property>
            <property name="frameShape">
@@ -507,7 +526,7 @@ QLabel {
            </property>
            <layout class="QVBoxLayout" name="verticalLayout_3">
             <property name="spacing">
-             <number>20</number>
+             <number>10</number>
             </property>
             <property name="leftMargin">
              <number>0</number>
@@ -523,6 +542,12 @@ QLabel {
             </property>
             <item>
              <widget class="QFrame" name="OutputPathHolder">
+              <property name="maximumSize">
+               <size>
+                <width>16777215</width>
+                <height>16777215</height>
+               </size>
+              </property>
               <property name="frameShape">
                <enum>QFrame::StyledPanel</enum>
               </property>
@@ -547,11 +572,23 @@ QLabel {
                </property>
                <item>
                 <widget class="QLabel" name="OutputPathLabel">
+                 <property name="sizePolicy">
+                  <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+                   <horstretch>0</horstretch>
+                   <verstretch>0</verstretch>
+                  </sizepolicy>
+                 </property>
+                 <property name="maximumSize">
+                  <size>
+                   <width>16777215</width>
+                   <height>16777215</height>
+                  </size>
+                 </property>
                  <property name="text">
                   <string>Output Path</string>
                  </property>
                  <property name="margin">
-                  <number>3</number>
+                  <number>0</number>
                  </property>
                  <property name="indent">
                   <number>10</number>
@@ -629,6 +666,9 @@ QLabel {
                <enum>QFrame::Raised</enum>
               </property>
               <layout class="QHBoxLayout" name="horizontalLayout_3">
+               <property name="spacing">
+                <number>10</number>
+               </property>
                <property name="leftMargin">
                 <number>0</number>
                </property>
@@ -649,46 +689,82 @@ QLabel {
                  <property name="frameShadow">
                   <enum>QFrame::Raised</enum>
                  </property>
-                 <layout class="QGridLayout" name="gridLayout">
+                 <layout class="QVBoxLayout" name="verticalLayout_10">
+                  <property name="spacing">
+                   <number>5</number>
+                  </property>
                   <property name="leftMargin">
-                   <number>10</number>
+                   <number>0</number>
                   </property>
                   <property name="topMargin">
                    <number>0</number>
                   </property>
                   <property name="rightMargin">
-                   <number>10</number>
-                  </property>
-                  <property name="bottomMargin">
                    <number>0</number>
                   </property>
-                  <property name="horizontalSpacing">
-                   <number>20</number>
+                  <property name="bottomMargin">
+                   <number>5</number>
                   </property>
-                  <property name="verticalSpacing">
-                   <number>10</number>
-                  </property>
-                  <item row="2" column="0">
-                   <widget class="QCheckBox" name="CheckVSCode">
-                    <property name="enabled">
-                     <bool>true</bool>
+                  <item>
+                   <widget class="QFrame" name="OpenViaFrame">
+                    <property name="frameShape">
+                     <enum>QFrame::StyledPanel</enum>
                     </property>
-                    <property name="text">
-                     <string>Open in Visual Studio Code</string>
+                    <property name="frameShadow">
+                     <enum>QFrame::Raised</enum>
                     </property>
+                    <layout class="QVBoxLayout" name="verticalLayout_11">
+                     <property name="spacing">
+                      <number>0</number>
+                     </property>
+                     <property name="leftMargin">
+                      <number>0</number>
+                     </property>
+                     <property name="topMargin">
+                      <number>0</number>
+                     </property>
+                     <property name="rightMargin">
+                      <number>0</number>
+                     </property>
+                     <property name="bottomMargin">
+                      <number>0</number>
+                     </property>
+                     <item>
+                      <widget class="QLabel" name="OpenViaLabel">
+                       <property name="text">
+                        <string>Open Via</string>
+                       </property>
+                       <property name="margin">
+                        <number>0</number>
+                       </property>
+                       <property name="indent">
+                        <number>10</number>
+                       </property>
+                      </widget>
+                     </item>
+                     <item>
+                      <widget class="QComboBox" name="ComboOpenVia">
+                       <property name="minimumSize">
+                        <size>
+                         <width>250</width>
+                         <height>0</height>
+                        </size>
+                       </property>
+                       <property name="editable">
+                        <bool>false</bool>
+                       </property>
+                       <property name="currentText">
+                        <string/>
+                       </property>
+                       <property name="frame">
+                        <bool>true</bool>
+                       </property>
+                      </widget>
+                     </item>
+                    </layout>
                    </widget>
                   </item>
-                  <item row="1" column="0">
-                   <widget class="QCheckBox" name="CheckFileExplorer">
-                    <property name="text">
-                     <string>Show in File Explorer</string>
-                    </property>
-                    <property name="checked">
-                     <bool>true</bool>
-                    </property>
-                   </widget>
-                  </item>
-                  <item row="0" column="0">
+                  <item>
                    <widget class="QCheckBox" name="CheckCloseApp">
                     <property name="text">
                      <string>Close app after success</string>
