@@ -13,6 +13,7 @@ FERNET = Fernet(FERNET_KEY)
 EXT = ".json"
 ENC = "latin-1"
 VAR_PREFIX = "@#"
+VAR_SUFFIX = "#@"
 ILLEGAL_CHARS = '[^\\\\/:*?"<>|]*'
 
 SCHEMA_PATH = os.path.join(__file__, os.path.pardir, "templatoron_schema.json")
@@ -20,7 +21,7 @@ SCHEMA_PATH = os.path.join(__file__, os.path.pardir, "templatoron_schema.json")
 
 def parse_variable_values(txt: str, variable_values: dict[str,str]):
     for k, v in variable_values.items():
-        txt = txt.replace(f"{VAR_PREFIX}{k}", v)
+        txt = txt.replace(f"{VAR_PREFIX}{k}{VAR_SUFFIX}", v)
     return txt
 
 class TemplatoronResponse(Enum):
@@ -93,14 +94,14 @@ class TemplatoronObject:
         return R
 
     @staticmethod
-    def from_scaning_folder(
-            folder: str | bytes | PathLike,
+    def from_scaning_folder_or_file(
+            path: str | bytes | PathLike,
             include_folder: bool = True
     ):
         variables = set({})
 
         def var_finder(txt: str):
-            for r in re.findall(f"(?<={VAR_PREFIX})[a-z_A-Z]+", txt):
+            for r in re.findall(f"(?<={VAR_PREFIX})[a-z_A-Z]+(?={VAR_SUFFIX})", txt):
                 variables.add(r)
             return txt
 
@@ -108,14 +109,17 @@ class TemplatoronObject:
             r = {}
             for i, val in enumerate(os.listdir(parent)):
                 pth = var_finder(os.path.join(parent, val))
-                r[val] = folder_scan(pth) if os.path.isdir(pth) else var_finder(open(pth, "r", encoding=ENC).read())
+                r[val] = folder_scan(pth) if os.path.isdir(pth) else var_finder(open(pth, "rb").read().decode(ENC))
             return r
-
+        def is_file_only(data_dict: dict):
+            return len([v for v in data_dict.values() if isinstance(v,str)]) == 0
 
 
         R = TemplatoronObject()
-        R.structure = TemplatoronObject.__sort_dict({os.path.basename(folder): folder_scan(folder)})
-        R.variables = [{"id":a,"displayname":a} for a in variables]
+        if os.path.isfile(path):
+            R.structure = {os.path.basename(path): var_finder(open(path, "rb").read().decode(ENC))}
+        else: R.structure = TemplatoronObject.__sort_dict({os.path.basename(path): folder_scan(path)})
+        R.variables = [{"id":a,"displayname":a.replace("_"," ").capitalize()} for a in variables]
         return R
 
     def save(
@@ -136,7 +140,6 @@ class TemplatoronObject:
             "variables": self.variables,
             "structure": TemplatoronObject.__sort_dict(encrypt(self.structure))
         }
-        print(TemplatoronObject.__sort_dict(self.structure))
         json.dump(RESULT, open(path if path.endswith(EXT) else path + EXT, "w", encoding=ENC), indent=4, sort_keys=False)
 
     def create_project(
@@ -151,12 +154,12 @@ class TemplatoronObject:
                     os.mkdir(fname)
                     file_creator(fname, v)
                 elif type(v) is str:
-                    open(fname, "w", encoding=ENC).write(parse_variable_values(v, variable_values))
-
+                    open(fname, "wb").write(parse_variable_values(v, variable_values).encode(ENC))
         srcvarset = set([a["id"] for a in self.variables])
         varset = set(variable_values.keys())
-        if os.path.exists(os.path.join(output_path,parse_variable_values(list(self.structure.keys())[0],variable_values))):
-            return TemplatoronResponse.ALREADY_EXIST
+        for k in self.structure.keys():
+            if os.path.exists(os.path.join(output_path, parse_variable_values(k, variable_values))):
+                return TemplatoronResponse.ALREADY_EXIST
         if varset != srcvarset:
             return TemplatoronResponse.VARIABLES_MISSING
         try:
@@ -171,7 +174,7 @@ class TemplatoronObject:
             return False
         def file_name_checker(data_dict: dict):
             for k, v in data_dict.items():
-                if k.__contains__(VAR_PREFIX+varid):
+                if k.__contains__(VAR_PREFIX+varid+VAR_SUFFIX):
                     return True
                 if type(v) is dict:
                     if file_name_checker(v):

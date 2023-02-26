@@ -85,6 +85,13 @@ QLineEdit {
 	border : 1px solid #666;
 	color: white;
 }
+#TemplateListView::item:selected &gt; * {
+    background-color: transparent;
+}
+#TemplateListView::item:selected QIcon {
+    background-color: transparent;
+    border: none;
+}
 QScrollBar:vertical{
 	width: 20px;
 	right: 20px;
@@ -647,13 +654,13 @@ QLabel {
                    <number>10</number>
                   </property>
                   <property name="topMargin">
-                   <number>10</number>
+                   <number>0</number>
                   </property>
                   <property name="rightMargin">
                    <number>10</number>
                   </property>
                   <property name="bottomMargin">
-                   <number>10</number>
+                   <number>0</number>
                   </property>
                   <property name="horizontalSpacing">
                    <number>20</number>
@@ -661,7 +668,17 @@ QLabel {
                   <property name="verticalSpacing">
                    <number>10</number>
                   </property>
-                  <item row="0" column="0">
+                  <item row="2" column="0">
+                   <widget class="QCheckBox" name="CheckVSCode">
+                    <property name="enabled">
+                     <bool>true</bool>
+                    </property>
+                    <property name="text">
+                     <string>Open in Visual Studio Code</string>
+                    </property>
+                   </widget>
+                  </item>
+                  <item row="1" column="0">
                    <widget class="QCheckBox" name="CheckFileExplorer">
                     <property name="text">
                      <string>Show in File Explorer</string>
@@ -671,13 +688,10 @@ QLabel {
                     </property>
                    </widget>
                   </item>
-                  <item row="1" column="0">
-                   <widget class="QCheckBox" name="CheckVSCode">
-                    <property name="enabled">
-                     <bool>true</bool>
-                    </property>
+                  <item row="0" column="0">
+                   <widget class="QCheckBox" name="CheckCloseApp">
                     <property name="text">
-                     <string>Open in Visual Studio Code</string>
+                     <string>Close app after success</string>
                     </property>
                    </widget>
                   </item>

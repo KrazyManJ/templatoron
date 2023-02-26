@@ -27,6 +27,7 @@ class TemplatoronWindow(FramelessWindow):
     OutputPathButton: QPushButton
     CreateProjectBtn: QPushButton
     OutputPathInput: QLineEdit
+    CheckCloseApp: QCheckBox
     CheckVSCode: QCheckBox
     CheckFileExplorer: QCheckBox
     TemplateListView: QListWidget
@@ -57,11 +58,14 @@ class TemplatoronWindow(FramelessWindow):
         pths = "templates"
         for a in os.listdir(pths):
             self.TemplateListView.addItem(TemplateItem(os.path.abspath(os.path.join(pths, a))))
+        self.TemplateListView.sortItems(Qt.AscendingOrder)
         self.TemplateListView.itemSelectionChanged.connect(self.handle_item_selection_changed)
         self.set_content_state(False)
 
         if not pyvscode.is_present():
             self.CheckVSCode.deleteLater()
+
+        self.VariableListLabel.hide()
 
 
     # ===================================================================================
@@ -91,12 +95,14 @@ class TemplatoronWindow(FramelessWindow):
         oPath = os.path.abspath(data.get("output_path",self.defaultPath()))
         if os.path.isdir(oPath):
             self.OutputPathInput.setText(oPath)
+        self.CheckCloseApp.setChecked(data.get("close_app", False))
         self.CheckFileExplorer.setChecked(data.get("open_file_explorer", False))
         self.CheckVSCode.setChecked(data.get("open_vscode", False))
 
     def saveConfiguration(self):
         json.dump({
             "output_path": self.OutputPathInput.text(),
+            "close_app": self.CheckCloseApp.isChecked(),
             "open_file_explorer": self.CheckFileExplorer.isChecked(),
             "open_vscode": self.CheckVSCode.isChecked()
         }, open("configuration.json", "w"), indent=4)
@@ -198,8 +204,14 @@ class TemplatoronWindow(FramelessWindow):
             self.VariableListContent.layout().addWidget(
                 VariableInput(self, var["id"], var["displayname"], file_mask=mask)
             )
+        if self.VariableListContent.layout().count() == 0:
+            self.VariableListLabel.hide()
+            self.set_create_button_state(True)
+        else:
+            self.VariableListLabel.show()
+            self.set_create_button_state(len([i for i in self.get_variables() if i.is_empty()]) == 0)
         self.update_tree_view()
-        self.set_create_button_state(len([i for i in self.get_variables() if i.is_empty()]) == 0)
+
 
     # ===================================================================================
     # STATES CHANGES
