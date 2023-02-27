@@ -17,6 +17,7 @@
     <file>open_icons/vscode.svg</file>
   </qresource>
   <qresource prefix="content">
+    <file>github.svg</file>
     <file>chevron-down.svg</file>
     <file>chevron-left.svg</file>
     <file>folder-open.svg</file>
