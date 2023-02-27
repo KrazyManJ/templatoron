@@ -36,6 +36,15 @@ class DialogCreator:
         box.setText(message)
         box.exec()
 
+    @staticmethod
+    def Confirm(message):
+        box = QMessageBox()
+        box.setIcon(QMessageBox.Warning)
+        box.setWindowTitle("Templatoron - Confirm")
+        box.setStandardButtons(QMessageBox.Ok | QMessageBox.Cancel)
+        box.setText(message)
+        return box.exec() == QMessageBox.Ok
+
 
 def image_to_base_bytes(path: str):
     """

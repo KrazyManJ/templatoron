@@ -22,6 +22,12 @@
                 }
             }
         },
+        "commands": {
+            "type": "array",
+            "items": {
+                "type": "string"
+            }
+        },
         "structure": {
             "$ref": "#/definitions/structure-node"
         }

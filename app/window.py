@@ -56,8 +56,6 @@ class TemplatoronWindow(FramelessWindow):
         super().__init__()
         self.app = app
         uic.loadUi(os.path.join(__file__, os.path.pardir, "design", "main_window.ui"), self)
-        self.connector()
-        self.loadConfiguration()
         self.setTitleBar(TitleBar(self))
         self.shadowEngine()
         utils.center_widget(self.app, self)
@@ -65,6 +63,8 @@ class TemplatoronWindow(FramelessWindow):
         for name, icon, pred in self.COMBO_DATA:
             if pred():
                 self.ComboOpenVia.addItem(QIcon(f":/open_via/open_icons/{icon}.svg"), name)
+        self.connector()
+        self.loadConfiguration()
         for font in ["inter.ttf", "firacode.ttf"]:
             QtGui.QFontDatabase.addApplicationFont(os.path.join(__file__, os.path.pardir, "fonts", font))
         for a in os.listdir(self.TEMPLATES_FOLDER):
@@ -144,6 +144,9 @@ class TemplatoronWindow(FramelessWindow):
             return
         if len([i for i in self.get_variables() if i.is_empty()]) == 0:
             temp = self.get_selected().Template
+            if len(temp.commands) > 0:
+                if not utils.DialogCreator.Confirm("This template contains terminal commands to execute after project creation and it can take some time to execute them. Do you want to continue?"):
+                    return
             pth = self.OutputPathInput.text()
             varvals = {i.get_id(): i.get_value() for i in self.get_variables()}
             respath = os.path.join(pth, templatoron.parse_variable_values(list(temp.structure.keys())[0], varvals))
@@ -178,6 +181,7 @@ class TemplatoronWindow(FramelessWindow):
                         "Git repository in this folder is already initialized, skipped initializing!")
 
             if self.CheckCloseApp.isChecked():
+                self.saveConfiguration()
                 self.close()
 
     # ===================================================================================

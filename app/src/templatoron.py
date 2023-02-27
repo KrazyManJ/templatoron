@@ -1,6 +1,7 @@
 import json
 import os
 import re
+import subprocess
 from enum import Enum
 from os import PathLike
 
@@ -36,6 +37,7 @@ class TemplatoronObject:
     name: str = "Unnamed"
     structure: dict = {}
     variables: list[dict[str, str]] = []
+    commands: list[str] = []
     icon: str = ""
 
     @staticmethod
@@ -79,7 +81,7 @@ class TemplatoronObject:
 
         def decypt(d: dict):
             if set(d.keys()) == {'displayname', 'id'} or set(d.keys()) == {'name', 'icon', 'structure',
-                                                                           'variables'}: return d
+                                                                           'variables', 'commands'}: return d
             r = {}
             for k, v in d.items():
                 r[k] = FERNET.decrypt(v.encode(ENC)).decode(ENC) if type(v) == str else v
@@ -91,6 +93,7 @@ class TemplatoronObject:
         R.icon = data.get("icon", "")
         R.structure = data.get("structure", {})
         R.variables = data.get("variables", [])
+        R.commands = data.get("commands", [])
         return R
 
     @staticmethod
@@ -133,7 +136,11 @@ class TemplatoronObject:
                     encrypt(v)
             return data
 
-        RESULT = {"name": self.name, "icon": self.icon, "variables": self.variables,
+        RESULT = {
+            "name": self.name,
+            "icon": self.icon,
+            "variables": self.variables,
+            "commands": self.commands,
             "structure": TemplatoronObject.__sort_dict(encrypt(self.structure))}
         json.dump(RESULT, open(path if path.endswith(EXT) else path + EXT, "w", encoding=ENC), indent=4,
                   sort_keys=False)
@@ -160,7 +167,21 @@ class TemplatoronObject:
             file_creator(output_path, self.structure)
         except PermissionError as e:
             return TemplatoronResponse.ACCESS_DENIED
+        cmdpth: str
+        if self.is_single_dir():
+            cmdpth = os.path.join(output_path, parse_variable_values(list(self.structure.keys())[0],variable_values))
+        else:
+            cmdpth = output_path
+        try:
+            for command in self.commands:
+                subprocess.Popen(command.split(" "),cwd=cmdpth,shell=True).wait()
+        except Exception as e:
+            print(e)
+
         return TemplatoronResponse.OK
+
+    def is_single_dir(self):
+        return len(self.structure.keys()) == 1 and isinstance(list(self.structure.values())[0],dict)
 
     def is_var_used_in_file_system(self, varid: str):
         if varid not in [i["id"] for i in self.variables]:
