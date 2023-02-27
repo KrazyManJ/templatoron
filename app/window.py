@@ -1,7 +1,6 @@
 import ctypes
 import json
 import os.path
-import subprocess
 
 import pyvscode  # type: ignore
 from PyQt5 import uic, QtGui
@@ -254,6 +253,7 @@ class TemplatoronWindow(FramelessWindow):
         opacity_effect = QGraphicsOpacityEffect()
         opacity_effect.setOpacity(0.5)
         self.MainFrame.setGraphicsEffect(None if state else opacity_effect)
+        self.MainFrame.setToolTip(None if state else "Firstly select template at the left panel.")
         self.MainContentFrame.setEnabled(state)
         self.MainFrame.setCursor(QCursor(Qt.ArrowCursor if state else Qt.ForbiddenCursor))
 

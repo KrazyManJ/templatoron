@@ -25,7 +25,7 @@
 }
 #TemplateListFrame {
 	background: #1F1F1F;
-	min-width: 300px;
+	min-width: 325px;
 	border-right: 1px solid #555;
 }
 #TemplateLabel {
@@ -418,7 +418,7 @@ QLabel {
                    <rect>
                     <x>0</x>
                     <y>0</y>
-                    <width>409</width>
+                    <width>397</width>
                     <height>16</height>
                    </rect>
                   </property>
