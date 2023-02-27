@@ -5,13 +5,20 @@
     <file>minus.svg</file>
     <file>x.svg</file>
   </qresource>
+  <qresource prefix="icon">
+    <file>icon.svg</file>
+  </qresource>
   <qresource prefix="open_via">
+    <file>open_icons/idea.svg</file>
+    <file>open_icons/phpstorm.svg</file>
     <file>open_icons/nothing.svg</file>
     <file>open_icons/file_explorer.svg</file>
     <file>open_icons/pycharm.svg</file>
     <file>open_icons/vscode.svg</file>
   </qresource>
   <qresource prefix="content">
+    <file>chevron-down.svg</file>
+    <file>chevron-left.svg</file>
     <file>folder-open.svg</file>
   </qresource>
 </RCC>

@@ -172,6 +172,13 @@ QLabel {
     border: 1px solid #666;
 	border-radius: 10px;
 }
+#ComboOpenVia::down-arrow {
+	image: url(:/content/chevron-left.svg);
+	right: 10px;
+}
+#ComboOpenVia::down-arrow:on {
+	image: url(:/content/chevron-down.svg);
+}
 #CheckCloseApp {
 	margin-left: 10px 5px;
 }</string>

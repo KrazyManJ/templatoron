@@ -37,16 +37,21 @@ class TemplatoronWindow(FramelessWindow):
     DirectoryDisplayLabel: QLabel
     VariableListLabel: QLabel
 
-    @staticmethod
-    def pycharm_path():
+    @classmethod
+    def jetbrains_path(cls, appkwd, exefile):
         jetbrains = os.path.join(os.path.abspath(r"C:\\"), "Program Files", "JetBrains")
-        pycharm = os.path.join(jetbrains, [i for i in os.listdir(jetbrains) if "PyCharm" in i][0])
-        exe = os.path.join(pycharm, "bin", "pycharm64.exe")
+        pycharm = os.path.join(jetbrains, [i for i in os.listdir(jetbrains) if appkwd in i][0])
+        exe = os.path.join(pycharm, "bin", f"{exefile}.exe")
         return exe
 
-    COMBO_DATA = [("Nothing", "nothing", lambda: True), ("File Explorer", "file_explorer", lambda: True),
+
+    COMBO_DATA = [
+        ("Nothing", "nothing", lambda: True), ("File Explorer", "file_explorer", lambda: True),
         ("Visual Studio Code", "vscode", lambda: pyvscode.is_present()),
-        ("PyCharm", "pycharm", lambda: os.path.exists(TemplatoronWindow.pycharm_path())), ]
+        ("PyCharm", "pycharm", lambda: os.path.exists(TemplatoronWindow.jetbrains_path("PyCharm", "pycharm64"))),
+        ("PhpStorm", "phpstorm", lambda : os.path.exists(TemplatoronWindow.jetbrains_path("PhpStorm","phpstorm64"))),
+        ("IntelliJ IDEA", "idea", lambda : os.path.exists(TemplatoronWindow.jetbrains_path("IntelliJ IDEA","idea64"))),
+    ]
 
     # ===================================================================================
     # INIT
@@ -136,6 +141,7 @@ class TemplatoronWindow(FramelessWindow):
             pth = self.OutputPathInput.text()
             varvals = {i.get_id(): i.get_value() for i in self.get_variables()}
             respath = os.path.join(pth, templatoron.parse_variable_values(list(temp.structure.keys())[0], varvals))
+            resallpaths = [os.path.join(pth, templatoron.parse_variable_values(a,varvals)) for a in temp.structure.keys()]
             response = temp.create_project(self.OutputPathInput.text(), **varvals)
             box = QMessageBox()
             if response is TemplatoronResponse.ACCESS_DENIED:
@@ -146,12 +152,19 @@ class TemplatoronWindow(FramelessWindow):
                 return
             utils.DialogCreator.Info("Successfully created project!")
             openVia = self.ComboOpenVia.currentText()
-            if openVia == "File Explorer":
-                os.system(f'explorer /select,"{respath}"')
-            elif openVia == "Visual Studio Code":
-                pyvscode.open_folder(respath)
-            elif openVia == "PyCharm":
-                subprocess.Popen([self.pycharm_path(), respath])
+            try:
+                if openVia == "File Explorer":
+                    os.system(f'explorer /select,"{respath}"')
+                elif openVia == "Visual Studio Code":
+                    pyvscode.open_folder(*([pth,resallpaths] if len(resallpaths) > 1 else [respath]))
+                elif openVia == "PyCharm":
+                    subprocess.Popen([self.jetbrains_path("PyCharm","pycharm64"), ",".join(resallpaths)])
+                elif openVia == "IntelliJ IDEA":
+                    subprocess.Popen([self.jetbrains_path("IntelliJ IDEA","idea64"), ",".join(resallpaths)])
+                elif openVia == "PhpStorm":
+                    subprocess.Popen([self.jetbrains_path("PhpStorm","phpstorm64"), ",".join(resallpaths)])
+            except Exception as e:
+                print(e.with_traceback(None))
             if self.CheckCloseApp.isChecked():
                 self.close()
 
