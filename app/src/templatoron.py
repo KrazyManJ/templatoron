@@ -1,3 +1,4 @@
+import base64
 import json
 import os
 import re
@@ -6,11 +7,7 @@ from enum import Enum
 from os import PathLike
 
 import jsonschema
-from cryptography.fernet import Fernet
 
-from tokens import FERNET_KEY
-
-FERNET = Fernet(FERNET_KEY)
 EXT = ".json"
 ENC = "latin-1"
 VAR_PREFIX = "@#"
@@ -80,11 +77,11 @@ class TemplatoronObject:
             raise Exception("Is not Templatoron file!")
 
         def decypt(d: dict):
-            if set(d.keys()) == {'displayname', 'id'} or set(d.keys()) == {'name', 'icon', 'structure',
-                                                                           'variables', 'commands'}: return d
+            if set(d.keys()) == {'displayname', 'id'} or set(d.keys()) == {'name', 'icon', 'structure', 'variables',
+                                                                           'commands'}: return d
             r = {}
             for k, v in d.items():
-                r[k] = FERNET.decrypt(v.encode(ENC)).decode(ENC) if type(v) == str else v
+                r[k] = base64.b64decode(v.encode(ENC)).decode(ENC) if type(v) == str else v
             return r
 
         R = TemplatoronObject()
@@ -98,7 +95,7 @@ class TemplatoronObject:
 
     @staticmethod
     def from_scaning_folder_or_file(path: str | bytes | PathLike, include_folder: bool = True,
-            ignore_names: list[str | bytes | PathLike] | None = None):
+                                    ignore_names: list[str | bytes | PathLike] | None = None):
         variables = set({})
         if ignore_names is None:
             ignore_names = []
@@ -124,23 +121,20 @@ class TemplatoronObject:
         else:
             R.structure = TemplatoronObject.__sort_dict(
                 {os.path.basename(path): folder_scan(path)} if include_folder else folder_scan(path))
-        R.variables = sorted([{"id": a, "displayname": a.replace("_", " ").capitalize()} for a in variables],key=lambda v:v["id"])
+        R.variables = sorted([{"id": a, "displayname": a.replace("_", " ").capitalize()} for a in variables],
+                             key=lambda v: v["id"])
         return R
 
     def save(self, path: str | bytes | PathLike):
         def encrypt(data):
             for k, v in data.items():
                 if isinstance(v, str):
-                    data[k] = FERNET.encrypt(v.encode(ENC)).decode(ENC)
+                    data[k] = base64.b64encode(v.encode(ENC)).decode(ENC)
                 elif isinstance(v, dict):
                     encrypt(v)
             return data
 
-        RESULT = {
-            "name": self.name,
-            "icon": self.icon,
-            "variables": self.variables,
-            "commands": self.commands,
+        RESULT = {"name": self.name, "icon": self.icon, "variables": self.variables, "commands": self.commands,
             "structure": TemplatoronObject.__sort_dict(encrypt(self.structure))}
         json.dump(RESULT, open(path if path.endswith(EXT) else path + EXT, "w", encoding=ENC), indent=4,
                   sort_keys=False)
@@ -169,19 +163,19 @@ class TemplatoronObject:
             return TemplatoronResponse.ACCESS_DENIED
         cmdpth: str
         if self.is_single_dir():
-            cmdpth = os.path.join(output_path, parse_variable_values(list(self.structure.keys())[0],variable_values))
+            cmdpth = os.path.join(output_path, parse_variable_values(list(self.structure.keys())[0], variable_values))
         else:
             cmdpth = output_path
         try:
             for command in self.commands:
-                subprocess.Popen(command.split(" "),cwd=cmdpth,shell=True).wait()
+                subprocess.Popen(command.split(" "), cwd=cmdpth, shell=True).wait()
         except Exception as e:
             print(e)
 
         return TemplatoronResponse.OK
 
     def is_single_dir(self):
-        return len(self.structure.keys()) == 1 and isinstance(list(self.structure.values())[0],dict)
+        return len(self.structure.keys()) == 1 and isinstance(list(self.structure.values())[0], dict)
 
     def is_var_used_in_file_system(self, varid: str):
         if varid not in [i["id"] for i in self.variables]:
