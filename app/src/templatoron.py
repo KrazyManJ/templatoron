@@ -161,17 +161,6 @@ class TemplatoronObject:
             file_creator(output_path, self.structure)
         except PermissionError as e:
             return TemplatoronResponse.ACCESS_DENIED
-        cmdpth: str
-        if self.is_single_dir():
-            cmdpth = os.path.join(output_path, parse_variable_values(list(self.structure.keys())[0], variable_values))
-        else:
-            cmdpth = output_path
-        try:
-            for command in self.commands:
-                subprocess.Popen(command.split(" "), cwd=cmdpth, shell=True).wait()
-        except Exception as e:
-            print(e)
-
         return TemplatoronResponse.OK
 
     def is_single_dir(self):
@@ -191,3 +180,9 @@ class TemplatoronObject:
             return False
 
         return file_name_checker(self.structure)
+
+    def command_path(self,output_path,**variable_values):
+        if self.is_single_dir():
+            return os.path.join(output_path, parse_variable_values(list(self.structure.keys())[0], variable_values))
+        else:
+            return output_path

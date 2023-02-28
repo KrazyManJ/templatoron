@@ -3,17 +3,17 @@ import json
 import os.path
 
 import pyvscode  # type: ignore
+from showinfm import show_in_file_manager
 from PyQt5 import uic, QtGui
-from PyQt5.QtCore import Qt
+from PyQt5.QtCore import Qt, QProcess, QEventLoop
 from PyQt5.QtGui import QCursor, QIcon
 from PyQt5.QtWidgets import *
 from qframelesswindow import FramelessWindow
 
-from app import utils
 from app.components.templateitem import TemplateItem
 from app.components.titlebar import TitleBar
 from app.components.variableinput import VariableInput
-from app.src import templatoron, git
+from app.src import templatoron, git, utils, dialog, systemsupport
 from app.src.jetbrains_ides import IDEs, open_file_in_ide, is_ide_installed
 from app.src.templatoron import TemplatoronResponse
 
@@ -27,6 +27,7 @@ class TemplatoronWindow(FramelessWindow):
 
     MainFrame: QFrame
     MainContentFrame: QFrame
+    TemplateListFrame: QFrame
     OutputPathButton: QPushButton
     CreateProjectBtn: QPushButton
     OutputPathInput: QLineEdit
@@ -96,17 +97,11 @@ class TemplatoronWindow(FramelessWindow):
     # CONFIGURATION LOADER/SAVER
     # ===================================================================================
 
-    @classmethod
-    def defaultPath(cls):
-        if os.name == "nt":
-            return os.path.join(os.path.join(os.environ['USERPROFILE']), 'Desktop')
-        return os.path.expanduser("~/Desktop")
-
     def loadConfiguration(self):
         if not os.path.exists("configuration.json"):
             open("configuration.json", "w").write("{}")
         data: dict = json.load(open("configuration.json", "r"))
-        oPath = os.path.abspath(data.get("output_path", self.defaultPath()))
+        oPath = os.path.abspath(data.get("output_path", systemsupport.desktop_path()))
         if os.path.isdir(oPath):
             self.OutputPathInput.setText(oPath)
         self.CheckCloseApp.setChecked(data.get("close_app", False))
@@ -142,47 +137,71 @@ class TemplatoronWindow(FramelessWindow):
     def create_project(self):
         if not self.is_something_selected():
             return
-        if len([i for i in self.get_variables() if i.is_empty()]) == 0:
-            temp = self.get_selected().Template
-            if len(temp.commands) > 0:
-                if not utils.DialogCreator.Confirm("This template contains terminal commands to execute after project creation and it can take some time to execute them. Do you want to continue?"):
-                    return
-            pth = self.OutputPathInput.text()
-            varvals = {i.get_id(): i.get_value() for i in self.get_variables()}
-            respath = os.path.join(pth, templatoron.parse_variable_values(list(temp.structure.keys())[0], varvals))
-            resallpaths = [os.path.join(pth, templatoron.parse_variable_values(a, varvals)) for a in
-                           temp.structure.keys()]
-            response = temp.create_project(self.OutputPathInput.text(), **varvals)
-            box = QMessageBox()
-            if response is TemplatoronResponse.ACCESS_DENIED:
-                utils.DialogCreator.Warn("Access denied by operating system while trying to create project!")
+        if len([i for i in self.get_variables() if i.is_empty()]) > 0:
+            return
+        temp = self.get_selected().Template
+        if len(temp.commands) > 0:
+            if not dialog.Confirm(
+                    "This template contains terminal commands to execute after project creation and it can take some time to execute them. Do you want to continue?"):
                 return
-            if response is TemplatoronResponse.ALREADY_EXIST:
-                utils.DialogCreator.Warn("There is already existing project with these parameters!")
-                return
-            utils.DialogCreator.Info("Successfully created project!")
-            openVia = self.ComboOpenVia.currentText()
+        pth = self.OutputPathInput.text()
+        varvals = {i.get_id(): i.get_value() for i in self.get_variables()}
+        respath = os.path.join(pth, templatoron.parse_variable_values(list(temp.structure.keys())[0], varvals))
+        resallpaths = [os.path.join(pth, templatoron.parse_variable_values(a, varvals)) for a in
+                       temp.structure.keys()]
+        self.set_app_state(False)
+        response = temp.create_project(self.OutputPathInput.text(), **varvals)
 
-            if openVia == "File Explorer":
-                os.system(f'explorer /select,"{respath}"')
-            elif openVia == "Visual Studio Code":
-                pyvscode.open_folder(*([pth, resallpaths] if len(resallpaths) > 1 else [respath]))
+        for restype, message in {
+            TemplatoronResponse.ACCESS_DENIED: "Access denied by operating system while trying to create project!",
+            TemplatoronResponse.ALREADY_EXIST: "There is already existing project with these parameters!"
+        }.items():
+            if response == restype:
+                dialog.Warn(message)
+                self.set_app_state(True)
+                return
+        if len(temp.commands) > 0:
+            output = temp.command_path(self.OutputPathInput.text(), **varvals)
+            self.run_command(systemsupport.open_terminal_command_build(temp.commands), output)
+        else:
+            dialog.Info("Successfully created project!")
+            self.set_app_state(True)
+        for label, fct in {
+            "File Explorer": lambda: show_in_file_manager(resallpaths,False),
+            "Visual Studio Code": lambda: pyvscode.open_folder(*([pth, resallpaths] if len(resallpaths) > 1 else [respath])),
+            "PyCharm": lambda: open_file_in_ide(IDEs.PYCHARM, resallpaths),
+            "IntelliJ IDEA": lambda: open_file_in_ide(IDEs.INTELLIJ, resallpaths),
+            "PhpStorm": lambda: open_file_in_ide(IDEs.PHPSTORM, resallpaths)
+        }.items():
+            if self.ComboOpenVia.currentText() == label: fct()
+
+        if self.CheckInitGit.isChecked():
+            gitpth = pth if len(resallpaths) > 1 or os.path.isfile(respath) else respath
+            if not git.already_init(gitpth):
+                git.init(gitpth)
             else:
-                for label, ide in [("PyCharm", IDEs.PYCHARM), ("IntelliJ IDEA", IDEs.INTELLIJ),
-                                   ("PhpStorm", IDEs.PHPSTORM)]:
-                    if openVia == label: open_file_in_ide(ide, resallpaths)
-                    break
-            if self.CheckInitGit.isChecked():
-                gitpth = pth if len(resallpaths) > 1 or os.path.isfile(respath) else respath
-                if not git.already_init(gitpth):
-                    git.init(gitpth)
-                else:
-                    utils.DialogCreator.Warn(
-                        "Git repository in this folder is already initialized, skipped initializing!")
+                dialog.Warn("Git repository in this folder is already initialized, skipped initializing!")
 
-            if self.CheckCloseApp.isChecked():
-                self.saveConfiguration()
-                self.close()
+        if self.CheckCloseApp.isChecked():
+            self.saveConfiguration()
+            self.close()
+
+    def run_command(self, command, work_directory):
+
+        process = QProcess()
+        if work_directory is not None:
+            process.setWorkingDirectory(work_directory)
+        process.start(command)
+
+        def end():
+            loop.quit()
+            print(process.exitCode())
+            dialog.Info("Successfully created project!")
+            self.set_app_state(True)
+
+        loop = QEventLoop()
+        process.finished.connect(end)  # type: ignore
+        loop.exec_()
 
     # ===================================================================================
     # TREE VIEW
@@ -267,3 +286,11 @@ class TemplatoronWindow(FramelessWindow):
         self.CreateProjectBtn.setGraphicsEffect(None if state else opacity_effect)
         self.CreateProjectBtn.setCursor(QCursor(Qt.PointingHandCursor if state else Qt.ForbiddenCursor))
         self.CreateProjectBtn.setToolTip(None if state else "You need to enter all parameters before creation.")
+
+    def set_app_state(self, state: bool):
+        opacity_effect = QGraphicsOpacityEffect()
+        opacity_effect.setOpacity(0.5)
+        self.TemplateListFrame.setGraphicsEffect(None if state else opacity_effect)
+        self.TemplateListFrame.setEnabled(state)
+        self.setCursor(QCursor(Qt.ArrowCursor if state else Qt.ForbiddenCursor))
+        self.set_content_state(state)

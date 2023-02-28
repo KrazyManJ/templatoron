@@ -19,33 +19,6 @@ def center_widget(app, widget):
     widget.move(frameGm.topLeft())
 
 
-class DialogCreator:
-    @staticmethod
-    def Info(message: str):
-        box = QMessageBox()
-        box.setIcon(QMessageBox.Information)
-        box.setWindowTitle("Templatoron - Success")
-        box.setText(message)
-        box.exec()
-
-    @staticmethod
-    def Warn(message: str):
-        box = QMessageBox()
-        box.setIcon(QMessageBox.Critical)
-        box.setWindowTitle("Templatoron - Error")
-        box.setText(message)
-        box.exec()
-
-    @staticmethod
-    def Confirm(message):
-        box = QMessageBox()
-        box.setIcon(QMessageBox.Warning)
-        box.setWindowTitle("Templatoron - Confirm")
-        box.setStandardButtons(QMessageBox.Ok | QMessageBox.Cancel)
-        box.setText(message)
-        return box.exec() == QMessageBox.Ok
-
-
 def image_to_base_bytes(path: str):
     """
     Used to create icons for templatoron files
