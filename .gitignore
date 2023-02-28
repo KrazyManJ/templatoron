@@ -2,6 +2,8 @@ project_files_to_scan
 
 templates
 
+logs
+
 output
 
 .idea

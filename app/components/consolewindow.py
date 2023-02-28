@@ -5,6 +5,7 @@ from PyQt5.QtCore import QProcess, Qt
 from PyQt5.QtWidgets import *
 
 from app.src import systemsupport, dialog, utils
+from app.src.filelogger import FileLogger
 
 
 class ConsoleWindow(QDialog):
@@ -15,7 +16,7 @@ class ConsoleWindow(QDialog):
     Content: QFrame
     Console: QPlainTextEdit
 
-    def __init__(self, commands: list[str], working_directory = None):
+    def __init__(self, commands: list[str], working_directory = None, logger: FileLogger = None):
         super().__init__()
         uic.loadUi(os.path.join(__file__, os.path.pardir, os.path.pardir, "design", "console_window.ui"), self)
         self.setWindowFlag(Qt.FramelessWindowHint)
@@ -24,6 +25,7 @@ class ConsoleWindow(QDialog):
 
         self.commands = commands
         self.curCommand = ""
+        self.logger = logger
 
         self.TitleBar.mousePressEvent = self.TitleBarClick
         self.TitleBar.mouseMoveEvent = self.TitleBarMove
@@ -38,25 +40,33 @@ class ConsoleWindow(QDialog):
 
         self.__run()
 
+    def closeEvent(self, a0) -> None:
+        return
+
     def consoleText(self):
         return self.Console.toPlainText()
 
+    def addText(self,text):
+        if self.logger is not None: self.logger.log(" ".join(text.split("\n")).strip())
+        self.Console.appendPlainText(text)
+
     def __run(self):
         if len(self.commands) > 0:
-            self.Console.appendPlainText(f"> {self.commands[0]}\n")
+            self.addText(f"> {self.commands[0]}\n")
             self.process.start(systemsupport.terminal_command(self.commands[0]))
             self.curCommand = self.commands.pop(0)
         else:
             self.close()
 
     def __outputReady(self):
-        self.Console.insertPlainText(self.process.readAllStandardOutput().data().decode())
+        self.addText(self.process.readAllStandardOutput().data().decode())
 
     def __errorReady(self):
-        self.Console.insertPlainText(self.process.readAllStandardError().data().decode())
+        self.addText(self.process.readAllStandardError().data().decode())
 
     def __finished(self, exitCode, exitStatus):
         if exitCode == 1:
+            if self.logger is not None: self.logger.warn(f'There was a problem while executing command "{self.curCommand}"')
             dialog.Warn(f'There was a problem while executing command "{self.curCommand}"!')
         self.__run()
 
