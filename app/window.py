@@ -10,6 +10,7 @@ from PyQt5.QtGui import QCursor, QIcon
 from PyQt5.QtWidgets import *
 from qframelesswindow import FramelessWindow
 
+from app.components.consolewindow import ConsoleWindow
 from app.components.templateitem import TemplateItem
 from app.components.titlebar import TitleBar
 from app.components.variableinput import VariableInput
@@ -147,32 +148,28 @@ class TemplatoronWindow(FramelessWindow):
         pth = self.OutputPathInput.text()
         varvals = {i.get_id(): i.get_value() for i in self.get_variables()}
         respath = os.path.join(pth, templatoron.parse_variable_values(list(temp.structure.keys())[0], varvals))
-        resallpaths = [os.path.join(pth, templatoron.parse_variable_values(a, varvals)) for a in
-                       temp.structure.keys()]
+        resallpaths = [os.path.join(pth, templatoron.parse_variable_values(a, varvals)) for a in temp.structure.keys()]
         self.set_app_state(False)
         response = temp.create_project(self.OutputPathInput.text(), **varvals)
 
         for restype, message in {
             TemplatoronResponse.ACCESS_DENIED: "Access denied by operating system while trying to create project!",
-            TemplatoronResponse.ALREADY_EXIST: "There is already existing project with these parameters!"
-        }.items():
+            TemplatoronResponse.ALREADY_EXIST: "There is already existing project with these parameters!"}.items():
             if response == restype:
                 dialog.Warn(message)
                 self.set_app_state(True)
                 return
         if len(temp.commands) > 0:
             output = temp.command_path(self.OutputPathInput.text(), **varvals)
-            self.run_command(systemsupport.open_terminal_command_build(temp.commands), output)
-        else:
-            dialog.Info("Successfully created project!")
-            self.set_app_state(True)
-        for label, fct in {
-            "File Explorer": lambda: show_in_file_manager(resallpaths,False),
-            "Visual Studio Code": lambda: pyvscode.open_folder(*([pth, resallpaths] if len(resallpaths) > 1 else [respath])),
-            "PyCharm": lambda: open_file_in_ide(IDEs.PYCHARM, resallpaths),
-            "IntelliJ IDEA": lambda: open_file_in_ide(IDEs.INTELLIJ, resallpaths),
-            "PhpStorm": lambda: open_file_in_ide(IDEs.PHPSTORM, resallpaths)
-        }.items():
+            console = ConsoleWindow(temp.commands, output)
+            console.exec()
+        self.set_app_state(True)
+        for label, fct in {"File Explorer": lambda: show_in_file_manager(resallpaths, False),
+                           "Visual Studio Code": lambda: pyvscode.open_folder(
+                               *([pth, resallpaths] if len(resallpaths) > 1 else [respath])),
+                           "PyCharm": lambda: open_file_in_ide(IDEs.PYCHARM, resallpaths),
+                           "IntelliJ IDEA": lambda: open_file_in_ide(IDEs.INTELLIJ, resallpaths),
+                           "PhpStorm": lambda: open_file_in_ide(IDEs.PHPSTORM, resallpaths)}.items():
             if self.ComboOpenVia.currentText() == label: fct()
 
         if self.CheckInitGit.isChecked():
