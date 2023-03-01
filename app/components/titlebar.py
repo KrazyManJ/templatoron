@@ -6,6 +6,9 @@ from PyQt5.QtCore import Qt
 from PyQt5.QtWidgets import *
 from qframelesswindow.utils import startSystemMove
 
+from app.src import utils
+
+
 class TitleBar(QWidget):
 
     BtnClose: QPushButton
@@ -23,6 +26,7 @@ class TitleBar(QWidget):
         ]
         for widg, fct in BTN_MAP:
             widg.clicked.connect(fct)
+            utils.apply_shadow(widg,50)
         self.__updateIcon()
         self.window().installEventFilter(self)
 

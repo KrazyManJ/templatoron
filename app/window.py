@@ -5,7 +5,7 @@ import os.path
 import pyvscode  # type: ignore
 from showinfm import show_in_file_manager
 from PyQt5 import uic, QtGui
-from PyQt5.QtCore import Qt, QProcess, QEventLoop
+from PyQt5.QtCore import Qt
 from PyQt5.QtGui import QCursor, QIcon
 from PyQt5.QtWidgets import *
 from qframelesswindow import FramelessWindow
@@ -43,6 +43,8 @@ class TemplatoronWindow(FramelessWindow):
     TemplateLabel: QLabel
     DirectoryDisplayLabel: QLabel
     VariableListLabel: QLabel
+    CreateTemplateBtn: QPushButton
+    EditTemplateBtn: QPushButton
 
     COMBO_DATA = [("Nothing", "nothing", lambda: True), ("File Explorer", "file_explorer", lambda: True),
                   ("Visual Studio Code", "vscode", lambda: pyvscode.is_present()),
@@ -74,6 +76,7 @@ class TemplatoronWindow(FramelessWindow):
         (self.TemplateListView.hide if len(
             os.listdir(self.TEMPLATES_FOLDER)) == 0 else self.NoTemplatesFoundLabel.hide)()
         self.set_content_state(False)
+        self.set_edit_template_button_state(False)
         self.VariableListLabel.hide()
         self.CheckCloseApp.setIcon(QIcon(":/titlebar/x.svg"))
         self.CheckInitGit.setIcon(QIcon(":/content/github.svg"))
@@ -81,6 +84,7 @@ class TemplatoronWindow(FramelessWindow):
         if not git.is_installed(): self.CheckInitGit.hide()
 
     def connector(self):
+        self.TemplateLabel.mousePressEvent = self.unselect_template
         self.OutputPathButton.clicked.connect(self.change_path)  # type: ignore
         self.CreateProjectBtn.clicked.connect(self.create_project)  # type: ignore
         self.TemplateListView.itemSelectionChanged.connect(self.handle_item_selection_changed)  # type: ignore
@@ -89,7 +93,7 @@ class TemplatoronWindow(FramelessWindow):
         self.CheckInitGit.stateChanged.connect(self.settingPropertyChanged)  # type: ignore
 
     def shadowEngine(self):
-        utils.apply_shadow(self.TemplateLabel, 20, r=30)
+        utils.apply_shadow(self.TemplateLabel, 150, r=30)
         utils.apply_shadow(self.DirectoryDisplayLabel, 40)
         utils.apply_shadow(self.VariableListLabel, 40)
         utils.apply_shadow(self.CreateProjectBtn, 40)
@@ -182,29 +186,15 @@ class TemplatoronWindow(FramelessWindow):
             self.saveConfiguration()
             self.close()
 
-    def run_command(self, command, work_directory):
-
-        process = QProcess()
-        if work_directory is not None:
-            process.setWorkingDirectory(work_directory)
-        process.start(command)
-
-        def end():
-            loop.quit()
-            print(process.exitCode())
-            dialog.Info("Successfully created project!")
-            self.set_app_state(True)
-
-        loop = QEventLoop()
-        process.finished.connect(end)  # type: ignore
-        loop.exec_()
-
     # ===================================================================================
     # TREE VIEW
     # ===================================================================================
 
     def update_tree_view(self):
         self.DirectoryDisplay.clear()
+
+        if not self.is_something_selected():
+            return
         temp = self.get_selected().Template
 
         def r(parent: QTreeWidget | QTreeWidgetItem, data: dict):
@@ -232,23 +222,23 @@ class TemplatoronWindow(FramelessWindow):
 
     def variableChange(self):
         self.update_tree_view()
-        self.set_create_button_state(len([i for i in self.get_variables() if i.is_empty()]) == 0)
+        self.set_create_project_button_state(len([i for i in self.get_variables() if i.is_empty()]) == 0)
 
     # ===================================================================================
     # TEMPLATE SELECTION
     # ===================================================================================
 
     def is_something_selected(self):
-        selected_items = self.TemplateListView.selectedItems()
-        return selected_items is not None
+        return len(self.TemplateListView.selectedItems()) == 1
 
     def get_selected(self) -> TemplateItem:
-        return self.TemplateListView.selectedItems()[0]  # type: ignore
+        return self.TemplateListView.currentItem() # type: ignore
 
     def handle_item_selection_changed(self):
         if not self.is_something_selected():
             return
         self.set_content_state(True)
+        self.set_edit_template_button_state(True)
         for child in self.get_variables():
             self.VariableListContent.layout().removeWidget(child)
             child.deleteLater()
@@ -258,10 +248,24 @@ class TemplatoronWindow(FramelessWindow):
                 VariableInput(self, var["id"], var["displayname"], file_mask=mask))
         if self.VariableListContent.layout().count() == 0:
             self.VariableListLabel.hide()
-            self.set_create_button_state(True)
+            self.set_create_project_button_state(True)
         else:
             self.VariableListLabel.show()
-            self.set_create_button_state(len([i for i in self.get_variables() if i.is_empty()]) == 0)
+            self.set_create_project_button_state(len([i for i in self.get_variables() if i.is_empty()]) == 0)
+        self.update_tree_view()
+
+    def unselect_template(self, a0):
+        if not self.is_something_selected():
+            return
+        for child in self.get_variables():
+            self.VariableListContent.layout().removeWidget(child)
+            child.deleteLater()
+        self.set_content_state(False)
+        self.set_create_project_button_state(False)
+        self.set_edit_template_button_state(False)
+        self.TemplateListView.blockSignals(True)
+        self.TemplateListView.currentItem().setSelected(False)
+        self.TemplateListView.blockSignals(False)
         self.update_tree_view()
 
     # ===================================================================================
@@ -276,12 +280,19 @@ class TemplatoronWindow(FramelessWindow):
         self.MainContentFrame.setEnabled(state)
         self.MainFrame.setCursor(QCursor(Qt.ArrowCursor if state else Qt.ForbiddenCursor))
 
-    def set_create_button_state(self, state: bool):
+    def set_create_project_button_state(self, state: bool):
         opacity_effect = QGraphicsOpacityEffect()
         opacity_effect.setOpacity(0.5)
         self.CreateProjectBtn.setGraphicsEffect(None if state else opacity_effect)
         self.CreateProjectBtn.setCursor(QCursor(Qt.PointingHandCursor if state else Qt.ForbiddenCursor))
         self.CreateProjectBtn.setToolTip(None if state else "You need to enter all parameters before creation.")
+
+    def set_edit_template_button_state(self, state: bool):
+        opacity_effect = QGraphicsOpacityEffect()
+        opacity_effect.setOpacity(0.5)
+        self.EditTemplateBtn.setGraphicsEffect(None if state else opacity_effect)
+        self.EditTemplateBtn.setCursor(QCursor(Qt.PointingHandCursor if state else Qt.ForbiddenCursor))
+        self.EditTemplateBtn.setToolTip(None if state else "You need to select some template to be able to edit it!")
 
     def set_app_state(self, state: bool):
         opacity_effect = QGraphicsOpacityEffect()

@@ -16,7 +16,7 @@ class ConsoleWindow(QDialog):
     Console: QPlainTextEdit
 
     def __init__(self, commands: list[str], working_directory = None):
-        super().__init__()
+        super().__init__() # type: ignore
         uic.loadUi(os.path.join(__file__, os.path.pardir, os.path.pardir, "design", "console_window.ui"), self)
         self.setWindowFlag(Qt.FramelessWindowHint)
         self.setAttribute(Qt.WA_TranslucentBackground)
@@ -30,9 +30,9 @@ class ConsoleWindow(QDialog):
         self.TitleBar.mouseReleaseEvent = self.TitleBarRelease
 
         self.process = QProcess()
-        self.process.finished.connect(self.__finished)
-        self.process.readyReadStandardOutput.connect(self.__outputReady)
-        self.process.readyReadStandardError.connect(self.__errorReady)
+        self.process.finished.connect(self.__finished) #type: ignore
+        self.process.readyReadStandardOutput.connect(self.__outputReady) #type: ignore
+        self.process.readyReadStandardError.connect(self.__errorReady) #type: ignore
         if working_directory is not None:
             self.process.setWorkingDirectory(working_directory)
 

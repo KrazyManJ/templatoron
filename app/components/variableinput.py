@@ -45,7 +45,7 @@ class VariableInput(QFrame):
         self.input_layout = QVBoxLayout(self.input_frame)
         self.input = QLineEdit(self.input_frame)
         self.input_layout.addWidget(self.input)
-        self.input.textEdited.connect(window.variableChange)
+        self.input.textEdited.connect(window.variableChange) # type: ignore
         if file_mask:
             regex = QRegExp(templatoron.ILLEGAL_CHARS)
             validator = QRegExpValidator(regex)

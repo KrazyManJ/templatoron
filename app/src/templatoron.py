@@ -2,7 +2,6 @@ import base64
 import json
 import os
 import re
-import subprocess
 from enum import Enum
 from os import PathLike
 from pathlib import Path
@@ -41,9 +40,9 @@ class TemplatoronObject:
 
     @staticmethod
     def __sort_dict(data):
-        def custom_sort(key):
-            value = data[key]
-            if isinstance(value, dict):
+        def custom_sort(k):
+            v = data[k]
+            if isinstance(v, dict):
                 return 0
             else:
                 return 1
@@ -154,15 +153,15 @@ class TemplatoronObject:
 
         srcvarset = set([a["id"] for a in self.variables])
         varset = set(variable_values.keys())
-        for k in self.structure.keys():
-            if os.path.exists(os.path.join(output_path, parse_variable_values(k, variable_values))):
+        for root_paths in self.structure.keys():
+            if os.path.exists(os.path.join(output_path, parse_variable_values(root_paths, variable_values))):
                 return TemplatoronResponse.ALREADY_EXIST
         if varset != srcvarset:
             return TemplatoronResponse.VARIABLES_MISSING
         try:
             os.makedirs(output_path, exist_ok=True)
             file_creator(output_path, self.structure)
-        except PermissionError as e:
+        except PermissionError:
             return TemplatoronResponse.ACCESS_DENIED
         return TemplatoronResponse.OK
 
