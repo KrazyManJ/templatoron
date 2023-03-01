@@ -142,17 +142,15 @@ class TemplatoronObject:
         json.dump(RESULT, open(path if path.endswith(EXT) else path + EXT, "w", encoding=ENC), indent=4,
                   sort_keys=False)
 
-    def create_project(self, output_path: str | bytes | PathLike, onfilecreate = None, **variable_values: str) -> TemplatoronResponse:
+    def create_project(self, output_path: str | bytes | PathLike, **variable_values: str) -> TemplatoronResponse:
         def file_creator(parent, file_or_folder_dict: dict):
             for k, v in file_or_folder_dict.items():
                 fname = os.path.join(parent, parse_variable_values(k, variable_values))
                 if type(v) is dict:
                     os.mkdir(fname)
-                    if onfilecreate is not None: onfilecreate(fname)
                     file_creator(fname, v)
                 elif type(v) is str:
                     open(fname, "wb").write(parse_variable_values(v, variable_values).encode(ENC))
-                    if onfilecreate is not None: onfilecreate(fname)
 
         srcvarset = set([a["id"] for a in self.variables])
         varset = set(variable_values.keys())

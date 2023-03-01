@@ -15,7 +15,6 @@ from app.components.templateitem import TemplateItem
 from app.components.titlebar import TitleBar
 from app.components.variableinput import VariableInput
 from app.src import templatoron, git, utils, dialog, systemsupport
-from app.src.filelogger import FileLogger, LogType
 from app.src.jetbrains_ides import IDEs, open_file_in_ide, is_ide_installed
 from app.src.templatoron import TemplatoronResponse
 
@@ -142,51 +141,25 @@ class TemplatoronWindow(FramelessWindow):
         if len([i for i in self.get_variables() if i.is_empty()]) > 0:
             return
         temp = self.get_selected().Template
-        logger = FileLogger(temp.filename)
         pth = self.OutputPathInput.text()
-        logger.log(f'Beginning of creation of project to path "{pth}"')
         if len(temp.commands) > 0:
             if not dialog.Confirm(
                     "This template contains terminal commands to execute after project creation and it can take some time to execute them. Do you want to continue?"):
-                logger.log("Declined command warning, terminating project creation")
-                logger.save()
                 return
         varvals = {i.get_id(): i.get_value() for i in self.get_variables()}
-        logger.log("")
-        logger.log("Variables: ")
-        logger.log("")
-        for k, v in varvals.items(): logger.log(f'- {k} = "{v}"')
-        logger.log("")
         respath = os.path.join(pth, templatoron.parse_variable_values(list(temp.structure.keys())[0], varvals))
         resallpaths = [os.path.join(pth, templatoron.parse_variable_values(a, varvals)) for a in temp.structure.keys()]
         self.set_app_state(False)
-        logger.log(f'Attempting to create project from template "{temp.name}"...')
-
-        def log_file_create(file):
-            fileType = "directory" if os.path.isdir(file) else "file"
-            logger.log(f'Successfully created {fileType} "{file}"')
-
-        response = temp.create_project(self.OutputPathInput.text(), onfilecreate=log_file_create, **varvals)
-
-        for restype, message, logmsg in [(
-        TemplatoronResponse.ACCESS_DENIED, "Access denied by operating system while trying to create project!",
-        "Creation blocked by OS priviledges"), (
-        TemplatoronResponse.ALREADY_EXIST, "There is already existing project with these parameters!",
-        "Creation blocked by colision with already existing files")]:
+        response = temp.create_project(self.OutputPathInput.text(), **varvals)
+        for restype, message in [
+            (TemplatoronResponse.ACCESS_DENIED, "Access denied by operating system while trying to create project!",),
+            (TemplatoronResponse.ALREADY_EXIST, "There is already existing project with these parameters!",)]:
             if response == restype:
                 dialog.Warn(message)
-                logger.warn(logmsg)
                 self.set_app_state(True)
-                logger.save()
                 return
-        logger.log("Successfully created all files!")
         if len(temp.commands) > 0:
-            logger.log("Running template commands...")
-            logger.log(f'{"=" * 20} CONSOLE OUTPUT {"=" * 20}')
-            output = temp.command_path(self.OutputPathInput.text(), **varvals)
-            console = ConsoleWindow(temp.commands, output, logger)
-            console.exec()
-            logger.log(f'{"=" * 20} END OF OUTPUT {"=" * 20}')
+            ConsoleWindow(temp.commands, temp.command_path(self.OutputPathInput.text(), **varvals)).exec()
         self.set_app_state(True)
         for label, fct in {"File Explorer": lambda: show_in_file_manager(resallpaths, False),
                            "Visual Studio Code": lambda: pyvscode.open_folder(
@@ -196,28 +169,18 @@ class TemplatoronWindow(FramelessWindow):
                            "PhpStorm": lambda: open_file_in_ide(IDEs.PHPSTORM, resallpaths)}.items():
             if self.ComboOpenVia.currentText() == label:
                 fct()
-                logger.log(f'Opened project via option "{label}"')
                 break
 
         if self.CheckInitGit.isChecked():
             gitpth = pth if len(resallpaths) > 1 or os.path.isfile(respath) else respath
             if not git.already_init(gitpth):
                 git.init(gitpth)
-                logger.log("Git has been successfully initialized")
             else:
-                logger.warn("Git is already initialized, skipping")
                 dialog.Warn("Git repository in this folder is already initialized, skipped initializing!")
-        else:
-            logger.log("Git init is not enabled, ignoring")
 
         if self.CheckCloseApp.isChecked():
             self.saveConfiguration()
-            logger.log("Closing app")
-            logger.save()
             self.close()
-        else:
-            logger.log("App closing is not enabled, ignoring closing")
-            logger.save()
 
     def run_command(self, command, work_directory):
 
