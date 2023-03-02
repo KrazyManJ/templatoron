@@ -1,15 +1,13 @@
-project_files_to_scan
-
-templates
-
-logs
-
-output
-
+# Project Data
 .idea
-
+TODO.md
+project_files_to_scan
+templates
 configuration.json
 
-TODO.md
-
+# Testfiles
 testmain.py
+
+# Build files
+build
+*.exe

@@ -63,7 +63,6 @@ class TemplatoronWindow(FramelessWindow):
         self.setTitleBar(TitleBar(self))
         self.shadowEngine()
         utils.center_widget(self.app, self)
-        ctypes.windll.shell32.SetCurrentProcessExplicitAppUserModelID("me.KrazyManJ.Templatoron.1.0.0")
         for name, icon, pred in self.COMBO_DATA:
             if pred():
                 self.ComboOpenVia.addItem(QIcon(f":/open_via/open_icons/{icon}.svg"), name)
