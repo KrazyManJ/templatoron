@@ -37,6 +37,7 @@ class TemplatoronObject:
     variables: list[dict[str, str]] = []
     commands: list[str] = []
     icon: str = ""
+    category: str | None = None
 
     @staticmethod
     def __sort_dict(data):
@@ -79,7 +80,7 @@ class TemplatoronObject:
             raise Exception("Is not Templatoron file!")
 
         def decypt(d: dict):
-            if set(d.keys()) == {'displayname', 'id'} or set(d.keys()) == {'name', 'icon', 'structure', 'variables',
+            if set(d.keys()) == {'displayname', 'id'} or set(d.keys()) == {'name', 'icon', 'category', 'structure', 'variables',
                                                                            'commands'}: return d
             r = {}
             for k, v in d.items():
@@ -94,6 +95,7 @@ class TemplatoronObject:
         R.structure = data.get("structure", {})
         R.variables = data.get("variables", [])
         R.commands = data.get("commands", [])
+        R.category = data.get("category", None)
         return R
 
     @staticmethod
@@ -137,7 +139,11 @@ class TemplatoronObject:
                     encrypt(v)
             return data
 
-        RESULT = {"name": self.name, "icon": self.icon, "variables": self.variables, "commands": self.commands,
+        RESULT = {
+            "name": self.name,
+            "icon": self.icon,
+            "category": self.category,
+            "variables": self.variables, "commands": self.commands,
             "structure": TemplatoronObject.__sort_dict(encrypt(self.structure))}
         json.dump(RESULT, open(path if path.endswith(EXT) else path + EXT, "w", encoding=ENC), indent=4,
                   sort_keys=False)
@@ -189,3 +195,22 @@ class TemplatoronObject:
             return os.path.join(output_path, parse_variable_values(list(self.structure.keys())[0], variable_values))
         else:
             return output_path
+
+    def __eq__(self, o: object) -> bool:
+        if not isinstance(o, TemplatoronObject): return False
+
+        for a1, a2 in [
+            (self.structure, o.structure),
+            (self.name, o.name),
+            (self.category, o.category),
+            (self.variables, o.variables),
+            (self.icon, o.icon),
+            (self.filename, o.filename),
+            (self.commands, o.commands)
+        ]:
+            if a1 is not a2:
+                print(a1, a2)
+                return False
+        return True
+
+

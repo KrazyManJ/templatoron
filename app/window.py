@@ -4,8 +4,8 @@ import os.path
 import pyvscode  # type: ignore
 from showinfm import show_in_file_manager
 from PyQt5 import uic, QtGui
-from PyQt5.QtCore import Qt
-from PyQt5.QtGui import QCursor, QIcon
+from PyQt5.QtCore import Qt, QItemSelection
+from PyQt5.QtGui import QCursor, QIcon, QFont
 from PyQt5.QtWidgets import *
 from qframelesswindow import FramelessWindow
 
@@ -37,7 +37,7 @@ class TemplatoronWindow(FramelessWindow):
     CheckInitGit: QCheckBox
     NoTemplatesFoundLabel: QLabel
     TemplateListContent: QFrame
-    TemplateListView: QListWidget
+    TemplateListView: QTreeWidget
     DirectoryDisplay: QTreeWidget
     VariableListContent: QWidget
     TemplateLabel: QLabel
@@ -70,8 +70,7 @@ class TemplatoronWindow(FramelessWindow):
         self.loadConfiguration()
         for font in ["inter.ttf", "firacode.ttf"]:
             QtGui.QFontDatabase.addApplicationFont(os.path.join(__file__, os.path.pardir, "fonts", font))
-        for a in os.listdir(self.TEMPLATES_FOLDER):
-            self.TemplateListView.addItem(TemplateItem(os.path.abspath(os.path.join(self.TEMPLATES_FOLDER, a))))
+        self.scan_files()
         (self.TemplateListView.hide if len(
             os.listdir(self.TEMPLATES_FOLDER)) == 0 else self.NoTemplatesFoundLabel.hide)()
         self.set_content_state(False)
@@ -84,11 +83,10 @@ class TemplatoronWindow(FramelessWindow):
         if not git.is_installed(): self.CheckInitGit.hide()
 
     def connector(self):
-        self.TemplateLabel.mousePressEvent = self.unselect_template
         self.CreateTemplateBtn.clicked.connect(self.create_template)  # type: ignore
         self.OutputPathButton.clicked.connect(self.change_path)  # type: ignore
         self.CreateProjectBtn.clicked.connect(self.create_project)  # type: ignore
-        self.TemplateListView.itemSelectionChanged.connect(self.handle_item_selection_changed)  # type: ignore
+        self.TemplateListView.selectionChanged = self.handle_item_selection_changed  # type: ignore
         self.ComboOpenVia.currentTextChanged.connect(self.settingPropertyChanged)  # type: ignore
         self.CheckCloseApp.stateChanged.connect(self.settingPropertyChanged)  # type: ignore
         self.CheckInitGit.stateChanged.connect(self.settingPropertyChanged)  # type: ignore
@@ -135,18 +133,6 @@ class TemplatoronWindow(FramelessWindow):
         a = QFileDialog.getExistingDirectory(self, "Select Directory", self.OutputPathInput.text())  # type: ignore
         if a != "":
             self.OutputPathInput.setText(os.path.abspath(a))
-
-    # ===================================================================================
-    # TEMPLATE CREATION
-    # ===================================================================================
-
-    def create_template(self):
-        self.set_app_state(False)
-        val = CreateTemplate().exec()
-        if val is not None:
-            self.TemplateListView.addItem(val)
-            self.TemplateListView.setCurrentItem(val)
-        self.set_app_state(True)
 
     # ===================================================================================
     # PROJECT CREATION
@@ -247,9 +233,19 @@ class TemplatoronWindow(FramelessWindow):
     def get_selected(self) -> TemplateItem:
         return self.TemplateListView.currentItem()  # type: ignore
 
-    def handle_item_selection_changed(self):
+    def handle_item_selection_changed(self, selected: QItemSelection, deselected: QItemSelection):
         if not self.is_something_selected():
             self.unselect_template()
+            return
+        selected = self.TemplateListView.itemFromIndex(selected.indexes()[0]) if len(
+            selected.indexes()) > 0 else None
+        deselected = self.TemplateListView.itemFromIndex(deselected.indexes()[0]) if len(
+            deselected.indexes()) > 0 else None
+        if not isinstance(selected, TemplateItem):
+            if deselected is not None:
+                self.TemplateListView.setCurrentItem(deselected)
+            else:
+                self.unselect_template()
             return
         self.set_content_state(True)
         self.set_edit_template_button_state(True)
@@ -279,6 +275,48 @@ class TemplatoronWindow(FramelessWindow):
         self.TemplateListView.currentItem().setSelected(False)
         self.TemplateListView.blockSignals(False)
         self.update_tree_view()
+
+    def create_template(self):
+        self.set_app_state(False)
+        val = CreateTemplate().exec()
+        if val is not None:
+            xd = templatoron.TemplatoronObject.from_file(val)
+            self.scan_files()
+            iterator = QTreeWidgetItemIterator(self.TemplateListView)
+            while iterator.value():
+                item = iterator.value()
+                if isinstance(item, TemplateItem):
+                    if item.Template.filename == xd.filename:
+                        self.TemplateListView.setCurrentItem(item)
+                        break
+                iterator += 1
+        self.set_app_state(True)
+
+    def scan_files(self):
+        self.TemplateListView.clear()
+        categories, files = [], []
+        f = QFont()
+        f.setBold(True)
+        for a in os.listdir(self.TEMPLATES_FOLDER):
+            pth = os.path.abspath(os.path.join(self.TEMPLATES_FOLDER, a))
+            if os.path.exists(pth) and os.path.isfile(pth):
+                item = TemplateItem(pth)
+                if item.Template.category is not None:
+                    if item.Template.category not in [x.text(0) for x in categories]:
+                        cat = QTreeWidgetItem([item.Template.category])
+                        cat.setFont(0, f)
+                        categories.append(cat)
+                    else:
+                        cat = [x for x in categories if x.text(0) == item.Template.category][0]
+                    cat.addChild(item)
+                else:
+                    files.append(item)
+
+        self.TemplateListView.addTopLevelItems(sorted(categories, key=lambda x: x.text(0)))
+        self.TemplateListView.addTopLevelItems(sorted(files, key=lambda x: x.text(0)))
+        for i in range(self.TemplateListView.topLevelItemCount()):
+            self.TemplateListView.topLevelItem(i).sortChildren(0, Qt.SortOrder.AscendingOrder)
+        self.TemplateListView.expandAll()
 
     # ===================================================================================
     # STATES CHANGES

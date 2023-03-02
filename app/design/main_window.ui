@@ -256,13 +256,13 @@ QLabel {
           <number>20</number>
          </property>
          <property name="leftMargin">
-          <number>10</number>
+          <number>0</number>
          </property>
          <property name="topMargin">
           <number>10</number>
          </property>
          <property name="rightMargin">
-          <number>10</number>
+          <number>0</number>
          </property>
          <property name="bottomMargin">
           <number>10</number>
@@ -300,7 +300,7 @@ QLabel {
           </widget>
          </item>
          <item>
-          <widget class="QListWidget" name="TemplateListView">
+          <widget class="QTreeWidget" name="TemplateListView">
            <property name="frameShadow">
             <enum>QFrame::Raised</enum>
            </property>
@@ -313,9 +313,23 @@ QLabel {
            <property name="selectionBehavior">
             <enum>QAbstractItemView::SelectItems</enum>
            </property>
+           <property name="indentation">
+            <number>20</number>
+           </property>
            <property name="sortingEnabled">
+            <bool>false</bool>
+           </property>
+           <property name="animated">
             <bool>true</bool>
            </property>
+           <property name="headerHidden">
+            <bool>true</bool>
+           </property>
+           <column>
+            <property name="text">
+             <string notr="true">1</string>
+            </property>
+           </column>
           </widget>
          </item>
          <item>
@@ -331,13 +345,13 @@ QLabel {
              <number>10</number>
             </property>
             <property name="leftMargin">
-             <number>0</number>
+             <number>10</number>
             </property>
             <property name="topMargin">
              <number>0</number>
             </property>
             <property name="rightMargin">
-             <number>0</number>
+             <number>10</number>
             </property>
             <property name="bottomMargin">
              <number>0</number>
