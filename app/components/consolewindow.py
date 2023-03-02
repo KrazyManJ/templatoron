@@ -4,30 +4,24 @@ from PyQt5 import uic
 from PyQt5.QtCore import QProcess, Qt
 from PyQt5.QtWidgets import *
 
+from app.components.abstract.qframelessdialog import QFramelessDialog
 from app.src import systemsupport, dialog, utils
 
 
-class ConsoleWindow(QDialog):
-
-    clickPos = None
+class ConsoleWindow(QFramelessDialog):
 
     TitleBar: QFrame
     Content: QFrame
     Console: QPlainTextEdit
 
     def __init__(self, commands: list[str], working_directory = None):
-        super().__init__() # type: ignore
+        super().__init__()
         uic.loadUi(os.path.join(__file__, os.path.pardir, os.path.pardir, "design", "console_window.ui"), self)
-        self.setWindowFlag(Qt.FramelessWindowHint)
-        self.setAttribute(Qt.WA_TranslucentBackground)
-        utils.apply_shadow(self.Content,50,y=0,r=20)
+        self.shadow(self.Content)
+        self.setDraggable(self.TitleBar)
 
         self.commands = commands
         self.curCommand = ""
-
-        self.TitleBar.mousePressEvent = self.TitleBarClick
-        self.TitleBar.mouseMoveEvent = self.TitleBarMove
-        self.TitleBar.mouseReleaseEvent = self.TitleBarRelease
 
         self.process = QProcess()
         self.process.finished.connect(self.__finished) #type: ignore
@@ -65,13 +59,3 @@ class ConsoleWindow(QDialog):
         if exitCode == 1:
             dialog.Warn(f'There was a problem while executing command "{self.curCommand}"!')
         self.__run()
-
-    def TitleBarClick(self, ev):
-        self.clickPos = ev.pos()
-
-    def TitleBarMove(self, event):
-        if self.clickPos is not None and event.buttons() == Qt.LeftButton:
-            self.move(self.pos() + event.pos() - self.clickPos)
-
-    def TitleBarRelease(self, ev):
-        self.clickPos = None

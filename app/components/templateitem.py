@@ -10,7 +10,7 @@ class TemplateItem(QListWidgetItem):
 
     Template: TemplatoronObject
 
-    def __init__(self, path):
+    def __init__(self, path: str):
         obj = TemplatoronObject.from_file(path)
         pixmap = QPixmap()
         pixmap.loadFromData(base64.b64decode(obj.icon))

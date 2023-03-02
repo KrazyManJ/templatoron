@@ -68,7 +68,8 @@ class TemplatoronObject:
             return False
         try:
             jsonschema.validate(json.load(open(path, encoding=ENC)), json.load(open(SCHEMA_PATH, encoding=ENC)))
-        except:
+        except Exception as e:
+            print(e)
             return False
         return True
 

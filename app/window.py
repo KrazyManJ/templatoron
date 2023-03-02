@@ -1,4 +1,3 @@
-import ctypes
 import json
 import os.path
 
@@ -11,6 +10,7 @@ from PyQt5.QtWidgets import *
 from qframelesswindow import FramelessWindow
 
 from app.components.consolewindow import ConsoleWindow
+from app.components.createtemplate import CreateTemplate
 from app.components.templateitem import TemplateItem
 from app.components.titlebar import TitleBar
 from app.components.variableinput import VariableInput
@@ -75,6 +75,7 @@ class TemplatoronWindow(FramelessWindow):
         (self.TemplateListView.hide if len(
             os.listdir(self.TEMPLATES_FOLDER)) == 0 else self.NoTemplatesFoundLabel.hide)()
         self.set_content_state(False)
+        self.set_create_project_button_state(False)
         self.set_edit_template_button_state(False)
         self.VariableListLabel.hide()
         self.CheckCloseApp.setIcon(QIcon(":/titlebar/x.svg"))
@@ -84,6 +85,7 @@ class TemplatoronWindow(FramelessWindow):
 
     def connector(self):
         self.TemplateLabel.mousePressEvent = self.unselect_template
+        self.CreateTemplateBtn.clicked.connect(self.create_template)  # type: ignore
         self.OutputPathButton.clicked.connect(self.change_path)  # type: ignore
         self.CreateProjectBtn.clicked.connect(self.create_project)  # type: ignore
         self.TemplateListView.itemSelectionChanged.connect(self.handle_item_selection_changed)  # type: ignore
@@ -133,6 +135,18 @@ class TemplatoronWindow(FramelessWindow):
         a = QFileDialog.getExistingDirectory(self, "Select Directory", self.OutputPathInput.text())  # type: ignore
         if a != "":
             self.OutputPathInput.setText(os.path.abspath(a))
+
+    # ===================================================================================
+    # TEMPLATE CREATION
+    # ===================================================================================
+
+    def create_template(self):
+        self.set_app_state(False)
+        val = CreateTemplate().exec()
+        if val is not None:
+            self.TemplateListView.addItem(val)
+            self.TemplateListView.setCurrentItem(val)
+        self.set_app_state(True)
 
     # ===================================================================================
     # PROJECT CREATION
@@ -231,10 +245,11 @@ class TemplatoronWindow(FramelessWindow):
         return len(self.TemplateListView.selectedItems()) == 1
 
     def get_selected(self) -> TemplateItem:
-        return self.TemplateListView.currentItem() # type: ignore
+        return self.TemplateListView.currentItem()  # type: ignore
 
     def handle_item_selection_changed(self):
         if not self.is_something_selected():
+            self.unselect_template()
             return
         self.set_content_state(True)
         self.set_edit_template_button_state(True)
@@ -253,9 +268,7 @@ class TemplatoronWindow(FramelessWindow):
             self.set_create_project_button_state(len([i for i in self.get_variables() if i.is_empty()]) == 0)
         self.update_tree_view()
 
-    def unselect_template(self, a0):
-        if not self.is_something_selected():
-            return
+    def unselect_template(self, a0=None):
         for child in self.get_variables():
             self.VariableListContent.layout().removeWidget(child)
             child.deleteLater()
@@ -299,4 +312,4 @@ class TemplatoronWindow(FramelessWindow):
         self.TemplateListFrame.setGraphicsEffect(None if state else opacity_effect)
         self.TemplateListFrame.setEnabled(state)
         self.setCursor(QCursor(Qt.ArrowCursor if state else Qt.ForbiddenCursor))
-        self.set_content_state(state)
+        self.set_content_state(state if not state else self.is_something_selected())
