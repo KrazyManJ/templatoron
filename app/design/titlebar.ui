@@ -21,13 +21,13 @@
 	max-height:35px;
 }
 #BtnClose {
-	border-image: url(:/titlebar/x.svg);
+	border-image: url(:/titlebar/titlebar/close.svg);
 }
 #BtnMin {
-	border-image: url(:/titlebar/minus.svg);
+	border-image: url(:/titlebar/titlebar/minus.svg);
 }
 #BtnMax {
-	border-image: url(:/titlebar/maximize.svg);
+	border-image: url(:/titlebar/titlebar/maximize.svg);
 }
 #TitleBarTitle {
 	font: 12pt &quot;Inter&quot;;

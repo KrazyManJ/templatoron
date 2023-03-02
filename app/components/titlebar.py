@@ -61,6 +61,6 @@ class TitleBar(QWidget):
         else:
             self.BtnMax.setStyleSheet("""
             #BtnMax {
-                border-image: url(:/titlebar/normalize.svg);
+                border-image: url(:/titlebar/titlebar/normalize.svg);
             }
             """)

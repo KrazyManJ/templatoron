@@ -17,4 +17,5 @@ class TemplateItem(QTreeWidgetItem):
         pixmap = QPixmap()
         pixmap.loadFromData(base64.b64decode(obj.icon))
         self.setIcon(0,QIcon(pixmap))
+        self.setToolTip(0,obj.name)
         self.Template = obj

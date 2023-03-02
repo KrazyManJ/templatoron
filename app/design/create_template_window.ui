@@ -34,9 +34,7 @@
 	max-height:35px;
 }
 #BtnClose {
-	border-image: url(:/titlebar/x.svg);
-}
-#NameInputFrame {
+	border-image: url(:/titlebar/titlebar/close.svg);
 }
 #NameInputFrame &gt; * {
 	background: transparent;
@@ -66,12 +64,12 @@ QLabel {
 	background: #777;
 }
 #NameInputFrame {
-        background: #141414;
-        max-height: 40px;
-        min-height: 40px;
-        border-radius: 10px;
-        border: 1px solid #555;
-    }</string>
+    background: #141414;
+    max-height: 40px;
+    min-height: 40px;
+    border-radius: 10px;
+    border: 1px solid #555;
+}</string>
   </property>
   <layout class="QVBoxLayout" name="verticalLayout">
    <item>

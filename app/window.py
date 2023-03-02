@@ -59,6 +59,7 @@ class TemplatoronWindow(FramelessWindow):
     def __init__(self, app: QApplication):
         super().__init__()
         self.app = app
+        os.makedirs(self.TEMPLATES_FOLDER, exist_ok=True)
         uic.loadUi(os.path.join(__file__, os.path.pardir, "design", "main_window.ui"), self)
         self.setTitleBar(TitleBar(self))
         self.shadowEngine()
@@ -77,7 +78,7 @@ class TemplatoronWindow(FramelessWindow):
         self.set_create_project_button_state(False)
         self.set_edit_template_button_state(False)
         self.VariableListLabel.hide()
-        self.CheckCloseApp.setIcon(QIcon(":/titlebar/x.svg"))
+        self.CheckCloseApp.setIcon(QIcon(":/titlebar/close.svg"))
         self.CheckInitGit.setIcon(QIcon(":/content/github.svg"))
 
         if not git.is_installed(): self.CheckInitGit.hide()

@@ -87,6 +87,14 @@ QLineEdit {
 	border : 1px solid #666;
 	color: white;
 }
+#TemplateListView::branch:closed:has-children {
+        border-image: none;
+        image: url(:/content/chevron-right.svg)
+}
+#TemplateListView::branch:open:has-children  {
+        border-image: none;
+        image: url(:/content/chevron-down.svg)
+}
 QScrollBar:vertical{
 	width: 20px;
 	right: 20px;
@@ -134,9 +142,16 @@ QScrollBar::add-page:vertical, QScrollBar::sub-page:vertical
 	border : 1px solid #666;
 	color: white;
 }
-#DirectoryDisplay::branch {
-	color: #ccc;
+#DirectoryDisplay::branch:closed:has-children {
+        border-image: none;
+        image: url(:/content/chevron-right.svg)
 }
+#DirectoryDisplay::branch:open:has-children  {
+        border-image: none;
+        image: url(:/content/chevron-down.svg)
+}
+
+
 QLabel {
 	color: #bbb;
 	font: 8pt &quot;Inter&quot;;

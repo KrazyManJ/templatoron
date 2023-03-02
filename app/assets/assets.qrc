@@ -1,9 +1,9 @@
 <RCC>
   <qresource prefix="titlebar">
-    <file>normalize.svg</file>
-    <file>maximize.svg</file>
-    <file>minus.svg</file>
-    <file>x.svg</file>
+    <file>titlebar/normalize.svg</file>
+    <file>titlebar/maximize.svg</file>
+    <file>titlebar/minus.svg</file>
+    <file>titlebar/close.svg</file>
   </qresource>
   <qresource prefix="icon">
     <file>icon.svg</file>
@@ -17,6 +17,7 @@
     <file>open_icons/vscode.svg</file>
   </qresource>
   <qresource prefix="content">
+    <file>chevron-right.svg</file>
     <file>github.svg</file>
     <file>chevron-down.svg</file>
     <file>chevron-left.svg</file>
