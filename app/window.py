@@ -78,7 +78,7 @@ class TemplatoronWindow(FramelessWindow):
         self.set_create_project_button_state(False)
         self.set_edit_template_button_state(False)
         self.VariableListLabel.hide()
-        self.CheckCloseApp.setIcon(QIcon(":/titlebar/close.svg"))
+        self.CheckCloseApp.setIcon(QIcon(":/titlebar/titlebar/close.svg"))
         self.CheckInitGit.setIcon(QIcon(":/content/github.svg"))
 
         if not git.is_installed(): self.CheckInitGit.hide()
@@ -300,18 +300,21 @@ class TemplatoronWindow(FramelessWindow):
         f.setBold(True)
         for a in os.listdir(self.TEMPLATES_FOLDER):
             pth = os.path.abspath(os.path.join(self.TEMPLATES_FOLDER, a))
-            if os.path.exists(pth) and os.path.isfile(pth):
-                item = TemplateItem(pth)
-                if item.Template.category is not None:
-                    if item.Template.category not in [x.text(0) for x in categories]:
-                        cat = QTreeWidgetItem([item.Template.category])
-                        cat.setFont(0, f)
-                        categories.append(cat)
-                    else:
-                        cat = [x for x in categories if x.text(0) == item.Template.category][0]
-                    cat.addChild(item)
-                else:
+            if os.path.exists(pth):
+                if os.path.isfile(pth):
+                    item = TemplateItem(pth)
                     files.append(item)
+                elif os.path.isdir(pth):
+                    ctgname = os.path.basename(pth)
+                    cat = QTreeWidgetItem([ctgname])
+                    cat.setFont(0, f)
+                    categories.append(cat)
+                    for i in os.listdir(pth):
+                        incatpath = os.path.join(pth,i)
+                        if os.path.isfile(incatpath):
+                            cat.addChild(TemplateItem(incatpath))
+
+
 
         self.TemplateListView.addTopLevelItems(sorted(categories, key=lambda x: x.text(0)))
         self.TemplateListView.addTopLevelItems(sorted(files, key=lambda x: x.text(0)))
