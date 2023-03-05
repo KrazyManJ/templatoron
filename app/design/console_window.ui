@@ -11,7 +11,7 @@
    </rect>
   </property>
   <property name="windowTitle">
-   <string>Templatoron Console Output</string>
+   <string>Templatoron - Console Output</string>
   </property>
   <property name="styleSheet">
    <string notr="true">#Content {

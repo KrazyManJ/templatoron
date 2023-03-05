@@ -90,6 +90,7 @@ class TemplatoronMainWindow(FramelessWindow):
         if not git.is_installed(): self.CheckInitGit.hide()
 
         self.TemplateListView.setContextMenuPolicy(Qt.CustomContextMenu)
+        self.TemplateLabel.setFocus()
 
     def connector(self):
         self.CreateTemplateBtn.clicked.connect(self.create_template)  # type: ignore
@@ -154,7 +155,7 @@ class TemplatoronMainWindow(FramelessWindow):
     # ===================================================================================
 
     def create_project(self):
-        if not self.is_something_selected():
+        if not self.is_template_selected():
             return
         if len([i for i in self.get_variables() if i.is_empty()]) > 0:
             return
@@ -207,7 +208,7 @@ class TemplatoronMainWindow(FramelessWindow):
     def update_tree_view(self):
         self.DirectoryDisplay.clear()
 
-        if not self.is_something_selected():
+        if not self.is_template_selected():
             return
         temp = self.get_selected().Template
 
@@ -239,7 +240,7 @@ class TemplatoronMainWindow(FramelessWindow):
         self.set_create_project_button_state(len([i for i in self.get_variables() if i.is_empty()]) == 0)
 
     def setDefaultParameters(self):
-        if not self.is_something_selected():
+        if not self.is_template_selected():
             return
         if len(self.get_variables()) == 0:
             return
@@ -257,25 +258,22 @@ class TemplatoronMainWindow(FramelessWindow):
     # TEMPLATE SELECTION
     # ===================================================================================
 
-    def is_something_selected(self):
-        return len(self.TemplateListView.selectedItems()) == 1
+    def is_template_selected(self):
+        return len([a for a in self.TemplateListView.selectedItems() if isinstance(a,TemplateItem)]) == 1
 
     def get_selected(self) -> TemplateItem:
         return self.TemplateListView.currentItem()  # type: ignore
 
     def handle_item_selection_changed(self, selected: QItemSelection, deselected: QItemSelection):
-        if not self.is_something_selected():
-            self.unselect_template()
+        if not self.is_template_selected():
+            self.unselect_template(keep_selection=True)
             return
         selected = self.TemplateListView.itemFromIndex(selected.indexes()[0]) if len(selected.indexes()) > 0 else None
         deselected = self.TemplateListView.itemFromIndex(deselected.indexes()[0]) if len(
             deselected.indexes()) > 0 else None
 
         if not isinstance(selected, TemplateItem):
-            if deselected is not None:
-                self.TemplateListView.setCurrentItem(deselected)
-            else:
-                self.unselect_template()
+            self.unselect_template(keep_selection=True)
             return
         self.set_content_state(True)
         self.set_edit_template_button_state(True)
@@ -296,16 +294,17 @@ class TemplatoronMainWindow(FramelessWindow):
             self.set_create_project_button_state(len([i for i in self.get_variables() if i.is_empty()]) == 0)
         self.update_tree_view()
 
-    def unselect_template(self, a0=None):
+    def unselect_template(self, a0=None, keep_selection=False):
         for child in self.get_variables():
             self.VariableListContent.layout().removeWidget(child)
             child.deleteLater()
         self.set_content_state(False)
         self.set_create_project_button_state(False)
         self.set_edit_template_button_state(False)
-        self.TemplateListView.blockSignals(True)
-        self.TemplateListView.currentItem().setSelected(False)
-        self.TemplateListView.blockSignals(False)
+        if not keep_selection:
+            self.TemplateListView.blockSignals(True)
+            self.TemplateListView.currentItem().setSelected(False)
+            self.TemplateListView.blockSignals(False)
         self.VariableListHeader.hide()
         self.update_tree_view()
 
@@ -390,7 +389,7 @@ class TemplatoronMainWindow(FramelessWindow):
         menu.exec_(self.TemplateListView.mapToGlobal(pos))
 
     def edit_template(self):
-        if not self.is_something_selected():
+        if not self.is_template_selected():
             return
         self.set_app_state(False)
         TemplatoronEditWindow().exec()
@@ -428,4 +427,4 @@ class TemplatoronMainWindow(FramelessWindow):
         self.TemplateListFrame.setGraphicsEffect(None if state else opacity_effect)
         self.TemplateListFrame.setEnabled(state)
         self.setCursor(QCursor(Qt.ArrowCursor if state else Qt.ForbiddenCursor))
-        self.set_content_state(state if not state else self.is_something_selected())
+        self.set_content_state(state if not state else self.is_template_selected())
