@@ -38,7 +38,11 @@ class TitleBar(QWidget):
     def mouseMoveEvent(self, e):
         if sys.platform != "win32" or not self._isDragRegion(e.pos()): return
         self.__updateIcon()
+        if self.window().isMaximized() and e.buttons() == Qt.LeftButton:
+            self.__updateIcon(False)
         startSystemMove(self.window(), e.globalPos())
+        if self.window().isMaximized():
+            self.__updateIcon()
 
     def mousePressEvent(self, e):
         if sys.platform == "win32" or e.button() != Qt.LeftButton or not self._isDragRegion(e.pos()): return
@@ -55,5 +59,7 @@ class TitleBar(QWidget):
     def _isDragRegion(self, pos):
         return 0 < pos.x() < self.width() - 46 * 3
 
-    def __updateIcon(self):
-        self.BtnMax.setStyleSheet("border-image: url(:/titlebar/titlebar/normalize.svg);" if self.window().isMaximized() else "")
+    def __updateIcon(self, state = None):
+        if state is None:
+            state = self.window().isMaximized()
+        self.BtnMax.setStyleSheet("border-image: url(:/titlebar/titlebar/normalize.svg);" if state else "")

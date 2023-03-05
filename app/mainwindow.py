@@ -3,7 +3,7 @@ import os.path
 
 import pyvscode  # type: ignore
 from PyQt5 import uic, QtGui
-from PyQt5.QtCore import Qt, QItemSelection
+from PyQt5.QtCore import Qt, QItemSelection, QEvent
 from PyQt5.QtGui import QCursor, QIcon, QFont
 from PyQt5.QtWidgets import *
 from qframelesswindow import FramelessWindow
@@ -91,6 +91,12 @@ class TemplatoronMainWindow(FramelessWindow):
 
         self.TemplateListView.setContextMenuPolicy(Qt.CustomContextMenu)
         self.TemplateLabel.setFocus()
+        self.installEventFilter(self)
+
+    def eventFilter(self, obj, event):
+        if event.type() == QEvent.MouseButtonPress:
+            self.clearFocus()
+        return super().eventFilter(obj, event)
 
     def connector(self):
         self.CreateTemplateBtn.clicked.connect(self.create_template)  # type: ignore
