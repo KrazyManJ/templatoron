@@ -23,10 +23,15 @@ class ConsoleWindow(QFramelessModal):
         if working_directory is not None:
             self.process.setWorkingDirectory(working_directory)
 
+    def exec(self):
         self.__run()
+        super().exec()
 
-    def closeEvent(self, a0) -> None:
-        a0.ignore()
+    def closeEvent(self, event) -> None:
+        if event.spontaneous():
+            event.ignore()
+        else:
+            super().closeEvent(event)
 
     def consoleText(self):
         return self.Console.toPlainText()

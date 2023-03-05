@@ -56,11 +56,4 @@ class TitleBar(QWidget):
         return 0 < pos.x() < self.width() - 46 * 3
 
     def __updateIcon(self):
-        if self.window().isMaximized():
-            self.BtnMax.setStyleSheet("")
-        else:
-            self.BtnMax.setStyleSheet("""
-            #BtnMax {
-                border-image: url(:/titlebar/titlebar/normalize.svg);
-            }
-            """)
+        self.BtnMax.setStyleSheet("border-image: url(:/titlebar/titlebar/normalize.svg);" if self.window().isMaximized() else "")

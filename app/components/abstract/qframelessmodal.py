@@ -23,7 +23,7 @@ class QFramelessModal(QWidget):
         self.TitleBar.mousePressEvent = self.draggableClick
         self.TitleBar.mouseMoveEvent = self.draggableMove
         self.TitleBar.mouseReleaseEvent = self.draggableRelease
-        self.__loop = QEventLoop()
+        self._loop = QEventLoop()
 
     def draggableClick(self, ev):
         self.clickPos = ev.pos()
@@ -37,11 +37,11 @@ class QFramelessModal(QWidget):
 
     def exec(self):
         self.show()
-        self.__loop.exec()
+        self._loop.exec()
 
     def close(self) -> bool:
-        self.__loop.exit()
+        self._loop.exit()
         return super().close()
 
     def closeEvent(self, a0) -> None:
-        self.__loop.exit()
+        self._loop.exit()

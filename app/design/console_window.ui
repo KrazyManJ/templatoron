@@ -38,7 +38,7 @@
 QScrollBar:vertical{
 	width: 20px;
 	right: 20px;
-	margin: 0px 10px 0px 0;
+	margin: 10px 10px 10px 0;
 	background: transparent;
 	border-radius: 5px;
 }
@@ -60,7 +60,7 @@ QScrollBar::add-line:vertical, QScrollBar::sub-line:vertical
 }
 QScrollBar::add-page:vertical, QScrollBar::sub-page:vertical
 {
-	background: #151515;
+	background: #222;
 	border-radius:5px;
 }</string>
   </property>
@@ -113,6 +113,12 @@ QScrollBar::add-page:vertical, QScrollBar::sub-page:vertical
       </item>
       <item>
        <widget class="QPlainTextEdit" name="Console">
+        <property name="verticalScrollBarPolicy">
+         <enum>Qt::ScrollBarAsNeeded</enum>
+        </property>
+        <property name="horizontalScrollBarPolicy">
+         <enum>Qt::ScrollBarAlwaysOff</enum>
+        </property>
         <property name="readOnly">
          <bool>true</bool>
         </property>

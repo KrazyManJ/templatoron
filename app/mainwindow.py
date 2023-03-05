@@ -15,6 +15,7 @@ from app.components.variableinput import VariableInput
 from app.components.windows.console import ConsoleWindow
 from app.components.windows.createtemplate import CreateTemplate
 from app.components.windows.defaultvar import DefaultVariableWindow
+from app.editwindow import TemplatoronEditWindow
 from app.src import templatoron, git, utils, dialog, systemsupport
 from app.src.jetbrains_ides import IDEs, open_file_in_ide, is_ide_installed
 from app.src.templatoron import TemplatoronResponse
@@ -55,7 +56,6 @@ class TemplatoronMainWindow(FramelessWindow):
                   ("PhpStorm", "phpstorm", lambda: is_ide_installed(IDEs.PHPSTORM)),
                   ("IntelliJ IDEA", "idea", lambda: is_ide_installed(IDEs.INTELLIJ))]
 
-    defaultVarValues: dict[str, dict[str, str]] = {}
 
     # ===================================================================================
     # INIT
@@ -72,6 +72,7 @@ class TemplatoronMainWindow(FramelessWindow):
         for name, icon, pred in self.COMBO_DATA:
             if pred():
                 self.ComboOpenVia.addItem(QIcon(f":/open_via/open_icons/{icon}.svg"), name)
+        self.defaultVarValues = {}
         self.connector()
         self.loadConfiguration()
         for font in ["inter.ttf", "firacode.ttf"]:
@@ -101,6 +102,7 @@ class TemplatoronMainWindow(FramelessWindow):
         self.DefaultValuesBtn.clicked.connect(self.setDefaultParameters) # type: ignore
         self.TemplateListView.customContextMenuRequested.connect(self.templateTreeContextMenu) # type: ignore
         self.TemplateListView.mouseMoveEvent = lambda ev: None
+        self.EditTemplateBtn.clicked.connect(self.edit_template) # type: ignore
 
     def shadowEngine(self):
         utils.apply_shadow(self.TemplateLabel, 150, r=30)
@@ -295,20 +297,17 @@ class TemplatoronMainWindow(FramelessWindow):
         self.update_tree_view()
 
     def unselect_template(self, a0=None):
-        try:
-            for child in self.get_variables():
-                self.VariableListContent.layout().removeWidget(child)
-                child.deleteLater()
-            self.set_content_state(False)
-            self.set_create_project_button_state(False)
-            self.set_edit_template_button_state(False)
-            self.TemplateListView.blockSignals(True)
-            self.TemplateListView.currentItem().setSelected(False)
-            self.TemplateListView.blockSignals(False)
-            self.VariableListHeader.hide()
-            self.update_tree_view()
-        except Exception as e:
-            print(e)
+        for child in self.get_variables():
+            self.VariableListContent.layout().removeWidget(child)
+            child.deleteLater()
+        self.set_content_state(False)
+        self.set_create_project_button_state(False)
+        self.set_edit_template_button_state(False)
+        self.TemplateListView.blockSignals(True)
+        self.TemplateListView.currentItem().setSelected(False)
+        self.TemplateListView.blockSignals(False)
+        self.VariableListHeader.hide()
+        self.update_tree_view()
 
     def create_template(self):
         self.set_app_state(False)
@@ -389,6 +388,13 @@ class TemplatoronMainWindow(FramelessWindow):
         """)
 
         menu.exec_(self.TemplateListView.mapToGlobal(pos))
+
+    def edit_template(self):
+        if not self.is_something_selected():
+            return
+        self.set_app_state(False)
+        TemplatoronEditWindow().exec()
+        self.set_app_state(True)
 
     # ===================================================================================
     # STATES CHANGES
