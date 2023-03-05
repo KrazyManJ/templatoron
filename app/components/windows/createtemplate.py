@@ -1,18 +1,14 @@
 import os
 
-from PyQt5 import uic
 from PyQt5.QtCore import QRegExp, Qt
 from PyQt5.QtGui import QRegExpValidator, QCursor
-from PyQt5.QtWidgets import QFrame, QPushButton, QLineEdit, QLabel, QGraphicsOpacityEffect
+from PyQt5.QtWidgets import QPushButton, QLineEdit, QLabel, QGraphicsOpacityEffect
 
-from app.components.abstract.qframelessdialog import QFramelessDialog
-from app.components.templateitem import TemplateItem
+from app.components.abstract.qframelessmodal import QFramelessModal
 from app.src import utils, templatoron, dialog
 
 
-class CreateTemplate(QFramelessDialog):
-    Content: QFrame
-    TitleBar: QFrame
+class CreateTemplate(QFramelessModal):
     BtnClose: QPushButton
     ExtLabel: QLabel
 
@@ -20,15 +16,11 @@ class CreateTemplate(QFramelessDialog):
     CreateBtn: QPushButton
 
     def __init__(self):
-        super().__init__()
-        uic.loadUi(os.path.join(__file__, os.path.pardir, os.path.pardir, "design", "create_template_window.ui"), self)
-        self.setDraggable(self.TitleBar)
+        super().__init__("create_template_window.ui")
         self.BtnClose.clicked.connect(self.close)
-        self.shadow(self.Content)
         utils.apply_shadow(self.BtnClose, 50)
-        self.__val = None
         self.ExtLabel.setText(templatoron.EXT)
-
+        self.__val = None
         regex = QRegExp(templatoron.ILLEGAL_CHARS)
         validator = QRegExpValidator(regex)
         self.NameInput.setValidator(validator)
@@ -53,7 +45,6 @@ class CreateTemplate(QFramelessDialog):
     def checkButton(self):
         self.set_create_project_button_state(len(self.NameInput.text()) > 0)
 
-
     def set_create_project_button_state(self, state: bool):
         opacity_effect = QGraphicsOpacityEffect()
         opacity_effect.setOpacity(0.5)
@@ -64,3 +55,9 @@ class CreateTemplate(QFramelessDialog):
     def exec(self) -> str | None:
         super().exec()
         return self.__val
+
+    def keyPressEvent(self, event) -> None:
+        if event.key() == Qt.Key_Enter or event.key() == Qt.Key_Return:
+            self.process()
+        elif event.key() == Qt.Key_Escape:
+            self.close()

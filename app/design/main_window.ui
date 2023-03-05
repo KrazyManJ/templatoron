@@ -81,6 +81,7 @@ QLineEdit {
 	border-radius: 5px;
 	color: white;
 	margin-right: 10px;
+border: 1px solid transparent;
 }
 #TemplateListView::item:selected {
 	background: #222;
@@ -136,6 +137,7 @@ QScrollBar::add-page:vertical, QScrollBar::sub-page:vertical
 	border-radius: 5px;
 	color: #ccc;
 	margin-right: 10px;
+	border: 1px solid transparent;
 }
 #DirectoryDisplay::item:selected {
 	background: #222;
@@ -210,7 +212,21 @@ QLabel {
 }
 #TemplateButtons QPushButton:pressed {
 	background: #777;
-}</string>
+}
+#DefaultValuesBtn {
+	padding: 5px 20px;
+	font: 8pt &quot;Inter&quot;;
+	background: #575757;
+	border-radius: 10px;
+	color: white;
+}
+#DefaultValuesBtn:hover {
+	background: #666;
+}
+#DefaultValuesBtn:pressed {
+	background: #777;
+}
+</string>
   </property>
   <layout class="QHBoxLayout" name="horizontalLayout">
    <property name="spacing">
@@ -330,6 +346,9 @@ QLabel {
            </property>
            <property name="horizontalScrollBarPolicy">
             <enum>Qt::ScrollBarAlwaysOff</enum>
+           </property>
+           <property name="selectionMode">
+            <enum>QAbstractItemView::SingleSelection</enum>
            </property>
            <property name="selectionBehavior">
             <enum>QAbstractItemView::SelectItems</enum>
@@ -497,7 +516,7 @@ QLabel {
               </property>
               <layout class="QVBoxLayout" name="verticalLayout_9">
                <property name="spacing">
-                <number>10</number>
+                <number>20</number>
                </property>
                <property name="leftMargin">
                 <number>0</number>
@@ -512,13 +531,56 @@ QLabel {
                 <number>0</number>
                </property>
                <item>
-                <widget class="QLabel" name="VariableListLabel">
-                 <property name="text">
-                  <string>Parameters</string>
+                <widget class="QFrame" name="VariableListHeader">
+                 <property name="frameShape">
+                  <enum>QFrame::StyledPanel</enum>
                  </property>
-                 <property name="alignment">
-                  <set>Qt::AlignCenter</set>
+                 <property name="frameShadow">
+                  <enum>QFrame::Raised</enum>
                  </property>
+                 <layout class="QHBoxLayout" name="horizontalLayout_5">
+                  <property name="leftMargin">
+                   <number>0</number>
+                  </property>
+                  <property name="topMargin">
+                   <number>0</number>
+                  </property>
+                  <property name="rightMargin">
+                   <number>20</number>
+                  </property>
+                  <property name="bottomMargin">
+                   <number>0</number>
+                  </property>
+                  <item>
+                   <widget class="QLabel" name="VariableListLabel">
+                    <property name="sizePolicy">
+                     <sizepolicy hsizetype="Expanding" vsizetype="Preferred">
+                      <horstretch>0</horstretch>
+                      <verstretch>0</verstretch>
+                     </sizepolicy>
+                    </property>
+                    <property name="text">
+                     <string>Parameters</string>
+                    </property>
+                    <property name="alignment">
+                     <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
+                    </property>
+                    <property name="indent">
+                     <number>15</number>
+                    </property>
+                   </widget>
+                  </item>
+                  <item>
+                   <widget class="QPushButton" name="DefaultValuesBtn">
+                    <property name="cursor">
+                     <cursorShape>PointingHandCursor</cursorShape>
+                    </property>
+                    <property name="text">
+                     <string>Set Default Values</string>
+                    </property>
+                   </widget>
+                  </item>
+                 </layout>
                 </widget>
                </item>
                <item>
@@ -600,7 +662,10 @@ QLabel {
                   <string>Folder &amp; File Tree</string>
                  </property>
                  <property name="alignment">
-                  <set>Qt::AlignCenter</set>
+                  <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
+                 </property>
+                 <property name="indent">
+                  <number>25</number>
                  </property>
                 </widget>
                </item>

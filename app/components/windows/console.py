@@ -1,44 +1,37 @@
-import os
-
-from PyQt5 import uic
-from PyQt5.QtCore import QProcess, Qt
+from PyQt5.QtCore import QProcess
 from PyQt5.QtWidgets import *
 
-from app.components.abstract.qframelessdialog import QFramelessDialog
-from app.src import systemsupport, dialog, utils
+from app.components.abstract.qframelessmodal import QFramelessModal
+from app.src import systemsupport, dialog
 
 
-class ConsoleWindow(QFramelessDialog):
-
+class ConsoleWindow(QFramelessModal):
     TitleBar: QFrame
     Content: QFrame
     Console: QPlainTextEdit
 
-    def __init__(self, commands: list[str], working_directory = None):
-        super().__init__()
-        uic.loadUi(os.path.join(__file__, os.path.pardir, os.path.pardir, "design", "console_window.ui"), self)
-        self.shadow(self.Content)
-        self.setDraggable(self.TitleBar)
+    def __init__(self, commands: list[str], working_directory=None):
+        super().__init__("console_window.ui")
 
         self.commands = commands
         self.curCommand = ""
 
         self.process = QProcess()
-        self.process.finished.connect(self.__finished) #type: ignore
-        self.process.readyReadStandardOutput.connect(self.__outputReady) #type: ignore
-        self.process.readyReadStandardError.connect(self.__errorReady) #type: ignore
+        self.process.finished.connect(self.__finished)  # type: ignore
+        self.process.readyReadStandardOutput.connect(self.__outputReady)  # type: ignore
+        self.process.readyReadStandardError.connect(self.__errorReady)  # type: ignore
         if working_directory is not None:
             self.process.setWorkingDirectory(working_directory)
 
         self.__run()
 
     def closeEvent(self, a0) -> None:
-        return
+        a0.ignore()
 
     def consoleText(self):
         return self.Console.toPlainText()
 
-    def addText(self,text):
+    def addText(self, text):
         self.Console.appendPlainText(text)
 
     def __run(self):

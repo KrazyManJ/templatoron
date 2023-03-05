@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>470</width>
-    <height>293</height>
+    <width>450</width>
+    <height>700</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -36,14 +36,9 @@
 #BtnClose {
 	border-image: url(:/titlebar/titlebar/close.svg);
 }
-#NameInputFrame &gt; * {
+#VariableArea, #VariableAreaContent {
 	background: transparent;
 	border: none;
-	font: 10pt &quot;Fira Code&quot;;
-	color: #ccc;
-}
-#ExtLabel {
-	color: #aaa;
 }
 QLabel {
 	color: #bbb;
@@ -63,13 +58,35 @@ QLabel {
 #CreateBtn:pressed {
 	background: #777;
 }
-#NameInputFrame {
-    background: #141414;
-    max-height: 40px;
-    min-height: 40px;
-    border-radius: 10px;
-    border: 1px solid #555;
-}</string>
+QScrollBar:vertical{
+	width: 20px;
+	right: 20px;
+	margin: 0px 10px 0px 0;
+	background: transparent;
+	border-radius: 5px;
+}
+QScrollBar::handle:vertical {
+	background: #505050;
+	border-radius: 5px;
+}
+QScrollBar::handle:vertical:hover {
+	background: #5A5A5A;
+}
+QScrollBar::handle:vertical:pressed {
+	background: #6A6A6A;
+}
+QScrollBar::add-line:vertical, QScrollBar::sub-line:vertical
+{
+      border: none;
+      background: none;
+      color: none;
+}
+QScrollBar::add-page:vertical, QScrollBar::sub-page:vertical
+{
+	background: #151515;
+	border-radius:5px;
+}
+</string>
   </property>
   <layout class="QVBoxLayout" name="verticalLayout">
    <item>
@@ -151,7 +168,7 @@ QLabel {
             <item>
              <widget class="QLabel" name="TitleBarTitle">
               <property name="text">
-               <string>Create Template</string>
+               <string>Edit Default Values</string>
               </property>
               <property name="alignment">
                <set>Qt::AlignCenter</set>
@@ -239,56 +256,46 @@ QLabel {
           <number>20</number>
          </property>
          <item>
-          <widget class="QFrame" name="CreateOptions">
-           <property name="frameShape">
-            <enum>QFrame::StyledPanel</enum>
+          <widget class="QScrollArea" name="VariableArea">
+           <property name="horizontalScrollBarPolicy">
+            <enum>Qt::ScrollBarAlwaysOff</enum>
            </property>
-           <property name="frameShadow">
-            <enum>QFrame::Raised</enum>
+           <property name="widgetResizable">
+            <bool>true</bool>
            </property>
-           <layout class="QVBoxLayout" name="verticalLayout_4">
-            <property name="spacing">
-             <number>0</number>
+           <widget class="QWidget" name="VariableAreaContent">
+            <property name="geometry">
+             <rect>
+              <x>0</x>
+              <y>0</y>
+              <width>384</width>
+              <height>20</height>
+             </rect>
             </property>
-            <item>
-             <widget class="QLabel" name="NameInputLabel">
-              <property name="text">
-               <string>File name</string>
-              </property>
-              <property name="margin">
-               <number>3</number>
-              </property>
-              <property name="indent">
-               <number>10</number>
-              </property>
-             </widget>
-            </item>
-            <item>
-             <widget class="QFrame" name="NameInputFrame">
-              <property name="frameShape">
-               <enum>QFrame::StyledPanel</enum>
-              </property>
-              <property name="frameShadow">
-               <enum>QFrame::Raised</enum>
-              </property>
-              <layout class="QHBoxLayout" name="horizontalLayout_4">
-               <property name="spacing">
-                <number>0</number>
-               </property>
-               <item>
-                <widget class="QLineEdit" name="NameInput"/>
-               </item>
-               <item>
-                <widget class="QLabel" name="ExtLabel">
-                 <property name="text">
-                  <string>.json</string>
-                 </property>
-                </widget>
-               </item>
-              </layout>
-             </widget>
-            </item>
-           </layout>
+            <property name="sizePolicy">
+             <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+              <horstretch>0</horstretch>
+              <verstretch>0</verstretch>
+             </sizepolicy>
+            </property>
+            <layout class="QVBoxLayout" name="verticalLayout_4">
+             <property name="spacing">
+              <number>20</number>
+             </property>
+             <property name="leftMargin">
+              <number>10</number>
+             </property>
+             <property name="topMargin">
+              <number>10</number>
+             </property>
+             <property name="rightMargin">
+              <number>10</number>
+             </property>
+             <property name="bottomMargin">
+              <number>10</number>
+             </property>
+            </layout>
+           </widget>
           </widget>
          </item>
          <item>
@@ -297,7 +304,7 @@ QLabel {
             <cursorShape>PointingHandCursor</cursorShape>
            </property>
            <property name="text">
-            <string>Create Template</string>
+            <string>Apply Settings</string>
            </property>
           </widget>
          </item>

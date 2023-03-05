@@ -41,11 +41,7 @@ class TemplatoronObject:
     @staticmethod
     def __sort_dict(data):
         def custom_sort(k):
-            v = data[k]
-            if isinstance(v, dict):
-                return 0
-            else:
-                return 1
+            return 0 if isinstance(data[k], dict) else 1
 
         sorted_keys = sorted(data.keys(), key=custom_sort)
         sorted_dict = {}

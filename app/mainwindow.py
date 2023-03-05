@@ -2,24 +2,25 @@ import json
 import os.path
 
 import pyvscode  # type: ignore
-from showinfm import show_in_file_manager
 from PyQt5 import uic, QtGui
 from PyQt5.QtCore import Qt, QItemSelection
 from PyQt5.QtGui import QCursor, QIcon, QFont
 from PyQt5.QtWidgets import *
 from qframelesswindow import FramelessWindow
+from showinfm import show_in_file_manager
 
-from app.components.consolewindow import ConsoleWindow
-from app.components.createtemplate import CreateTemplate
 from app.components.templateitem import TemplateItem
 from app.components.titlebar import TitleBar
 from app.components.variableinput import VariableInput
+from app.components.windows.console import ConsoleWindow
+from app.components.windows.createtemplate import CreateTemplate
+from app.components.windows.defaultvar import DefaultVariableWindow
 from app.src import templatoron, git, utils, dialog, systemsupport
 from app.src.jetbrains_ides import IDEs, open_file_in_ide, is_ide_installed
 from app.src.templatoron import TemplatoronResponse
 
 
-class TemplatoronWindow(FramelessWindow):
+class TemplatoronMainWindow(FramelessWindow):
     TEMPLATES_FOLDER = "templates"
 
     # ===================================================================================
@@ -42,7 +43,9 @@ class TemplatoronWindow(FramelessWindow):
     VariableListContent: QWidget
     TemplateLabel: QLabel
     DirectoryDisplayLabel: QLabel
+    VariableListHeader: QFrame
     VariableListLabel: QLabel
+    DefaultValuesBtn: QPushButton
     CreateTemplateBtn: QPushButton
     EditTemplateBtn: QPushButton
 
@@ -51,6 +54,8 @@ class TemplatoronWindow(FramelessWindow):
                   ("PyCharm", "pycharm", lambda: is_ide_installed(IDEs.PYCHARM)),
                   ("PhpStorm", "phpstorm", lambda: is_ide_installed(IDEs.PHPSTORM)),
                   ("IntelliJ IDEA", "idea", lambda: is_ide_installed(IDEs.INTELLIJ))]
+
+    defaultVarValues: dict[str, dict[str, str]] = {}
 
     # ===================================================================================
     # INIT
@@ -77,11 +82,13 @@ class TemplatoronWindow(FramelessWindow):
         self.set_content_state(False)
         self.set_create_project_button_state(False)
         self.set_edit_template_button_state(False)
-        self.VariableListLabel.hide()
+        self.VariableListHeader.hide()
         self.CheckCloseApp.setIcon(QIcon(":/titlebar/titlebar/close.svg"))
         self.CheckInitGit.setIcon(QIcon(":/content/github.svg"))
 
         if not git.is_installed(): self.CheckInitGit.hide()
+
+        self.TemplateListView.setContextMenuPolicy(Qt.CustomContextMenu)
 
     def connector(self):
         self.CreateTemplateBtn.clicked.connect(self.create_template)  # type: ignore
@@ -91,6 +98,9 @@ class TemplatoronWindow(FramelessWindow):
         self.ComboOpenVia.currentTextChanged.connect(self.settingPropertyChanged)  # type: ignore
         self.CheckCloseApp.stateChanged.connect(self.settingPropertyChanged)  # type: ignore
         self.CheckInitGit.stateChanged.connect(self.settingPropertyChanged)  # type: ignore
+        self.DefaultValuesBtn.clicked.connect(self.setDefaultParameters) # type: ignore
+        self.TemplateListView.customContextMenuRequested.connect(self.templateTreeContextMenu) # type: ignore
+        self.TemplateListView.mouseMoveEvent = lambda ev: None
 
     def shadowEngine(self):
         utils.apply_shadow(self.TemplateLabel, 150, r=30)
@@ -114,11 +124,13 @@ class TemplatoronWindow(FramelessWindow):
         open_via = data.get("open_via", "Nothing")
         available = [name for name, icon, pred in self.COMBO_DATA if pred]
         self.ComboOpenVia.setCurrentText(open_via if open_via in available else "Nothing")
+        self.defaultVarValues = data.get("default_var_values", {})
 
     def saveConfiguration(self):
         json.dump({"output_path": self.OutputPathInput.text(), "close_app": self.CheckCloseApp.isChecked(),
-                   "init_git": self.CheckInitGit.isChecked(), "open_via": self.ComboOpenVia.currentText()},
-                  open("configuration.json", "w"), indent=4, sort_keys=True)
+                   "init_git": self.CheckInitGit.isChecked(), "open_via": self.ComboOpenVia.currentText(),
+                   "default_var_values": self.defaultVarValues}, open("configuration.json", "w"), indent=4,
+                  sort_keys=True)
 
     def closeEvent(self, a0: QtGui.QCloseEvent) -> None:
         self.saveConfiguration()
@@ -224,6 +236,21 @@ class TemplatoronWindow(FramelessWindow):
         self.update_tree_view()
         self.set_create_project_button_state(len([i for i in self.get_variables() if i.is_empty()]) == 0)
 
+    def setDefaultParameters(self):
+        if not self.is_something_selected():
+            return
+        if len(self.get_variables()) == 0:
+            return
+        self.set_app_state(False)
+        sel = self.get_selected()
+        response = DefaultVariableWindow(sel.Template, self.defaultVarValues.get(os.path.relpath(sel.path), {})).exec()
+        if response is not None:
+            self.defaultVarValues[os.path.relpath(sel.path)] = response
+            self.saveConfiguration()
+            self.unselect_template()
+            self.TemplateListView.setCurrentItem(sel)
+        self.set_app_state(True)
+
     # ===================================================================================
     # TEMPLATE SELECTION
     # ===================================================================================
@@ -238,10 +265,10 @@ class TemplatoronWindow(FramelessWindow):
         if not self.is_something_selected():
             self.unselect_template()
             return
-        selected = self.TemplateListView.itemFromIndex(selected.indexes()[0]) if len(
-            selected.indexes()) > 0 else None
+        selected = self.TemplateListView.itemFromIndex(selected.indexes()[0]) if len(selected.indexes()) > 0 else None
         deselected = self.TemplateListView.itemFromIndex(deselected.indexes()[0]) if len(
             deselected.indexes()) > 0 else None
+
         if not isinstance(selected, TemplateItem):
             if deselected is not None:
                 self.TemplateListView.setCurrentItem(deselected)
@@ -253,29 +280,35 @@ class TemplatoronWindow(FramelessWindow):
         for child in self.get_variables():
             self.VariableListContent.layout().removeWidget(child)
             child.deleteLater()
-        for var in self.get_selected().Template.variables:
-            mask = self.get_selected().Template.is_var_used_in_file_system(var["id"])
-            self.VariableListContent.layout().addWidget(
-                VariableInput(self, var["id"], var["displayname"], file_mask=mask))
+        for var in selected.Template.variables:
+            mask = selected.Template.is_var_used_in_file_system(var["id"])
+            varInput = VariableInput(var["id"], var["displayname"], file_mask=mask)
+            varInput.input.textEdited.connect(self.variableChange)
+            varInput.input.setText(self.defaultVarValues.get(os.path.relpath(selected.path), {}).get(var["id"], ""))
+            self.VariableListContent.layout().addWidget(varInput)
         if self.VariableListContent.layout().count() == 0:
-            self.VariableListLabel.hide()
+            self.VariableListHeader.hide()
             self.set_create_project_button_state(True)
         else:
-            self.VariableListLabel.show()
+            self.VariableListHeader.show()
             self.set_create_project_button_state(len([i for i in self.get_variables() if i.is_empty()]) == 0)
         self.update_tree_view()
 
     def unselect_template(self, a0=None):
-        for child in self.get_variables():
-            self.VariableListContent.layout().removeWidget(child)
-            child.deleteLater()
-        self.set_content_state(False)
-        self.set_create_project_button_state(False)
-        self.set_edit_template_button_state(False)
-        self.TemplateListView.blockSignals(True)
-        self.TemplateListView.currentItem().setSelected(False)
-        self.TemplateListView.blockSignals(False)
-        self.update_tree_view()
+        try:
+            for child in self.get_variables():
+                self.VariableListContent.layout().removeWidget(child)
+                child.deleteLater()
+            self.set_content_state(False)
+            self.set_create_project_button_state(False)
+            self.set_edit_template_button_state(False)
+            self.TemplateListView.blockSignals(True)
+            self.TemplateListView.currentItem().setSelected(False)
+            self.TemplateListView.blockSignals(False)
+            self.VariableListHeader.hide()
+            self.update_tree_view()
+        except Exception as e:
+            print(e)
 
     def create_template(self):
         self.set_app_state(False)
@@ -310,17 +343,52 @@ class TemplatoronWindow(FramelessWindow):
                     cat.setFont(0, f)
                     categories.append(cat)
                     for i in os.listdir(pth):
-                        incatpath = os.path.join(pth,i)
+                        incatpath = os.path.join(pth, i)
                         if os.path.isfile(incatpath):
                             cat.addChild(TemplateItem(incatpath))
-
-
 
         self.TemplateListView.addTopLevelItems(sorted(categories, key=lambda x: x.text(0)))
         self.TemplateListView.addTopLevelItems(sorted(files, key=lambda x: x.text(0)))
         for i in range(self.TemplateListView.topLevelItemCount()):
             self.TemplateListView.topLevelItem(i).sortChildren(0, Qt.SortOrder.AscendingOrder)
         self.TemplateListView.expandAll()
+
+    def templateTreeContextMenu(self, pos):
+        index = self.TemplateListView.indexAt(pos)
+        if not index.isValid():
+            return
+        item = self.TemplateListView.itemAt(pos)
+        if not isinstance(item, TemplateItem):
+            return
+        name = item.text(0)
+        menu = QMenu()
+        menu.addAction("Edit")
+        menu.addAction("Remove")
+        menu.setStyleSheet("""
+        QMenu {
+            background-color: #292929;
+            font: 15pt "Inter";
+            color: white;
+            border: 1px solid #444;
+            border-radius: 15px;
+            padding: 10px;
+        }
+        QMenu::item {
+            padding: 2px 25px 2px 20px;
+            border: 1px solid transparent;
+            border-radius: 5px;
+        }
+        QMenu::item:selected {
+            background: #333;
+            border: 1px solid #666;
+        }
+        QMenu::item:pressed {
+            background: #444;
+            border: 1px solid #666;
+        }
+        """)
+
+        menu.exec_(self.TemplateListView.mapToGlobal(pos))
 
     # ===================================================================================
     # STATES CHANGES
