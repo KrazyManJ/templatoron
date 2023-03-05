@@ -8,9 +8,6 @@
         "icon": {
             "type": "string"
         },
-        "category": {
-            "type": ["string", "null"]
-        },
         "variables": {
             "type": "array",
             "items": {

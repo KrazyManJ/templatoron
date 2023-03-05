@@ -80,6 +80,7 @@ QLineEdit {
 	font: 12pt &quot;Inter&quot;;
 	outline: 0;
 	border-radius: 15px;
+	padding: 10px 0 10px 5px;
 }
 #TemplateListView::item {
 	padding: 2px;

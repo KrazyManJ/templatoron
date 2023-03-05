@@ -4,7 +4,7 @@ import os.path
 import pyvscode  # type: ignore
 from PyQt5 import uic, QtGui
 from PyQt5.QtCore import Qt, QItemSelection, QEvent
-from PyQt5.QtGui import QCursor, QIcon, QFont
+from PyQt5.QtGui import QCursor, QIcon, QFont, QPalette, QBrush, QPixmap
 from PyQt5.QtWidgets import *
 from qframelesswindow import FramelessWindow
 from showinfm import show_in_file_manager
@@ -63,6 +63,7 @@ class TemplatoronMainWindow(FramelessWindow):
 
     def __init__(self, app: QApplication):
         super().__init__()
+        self.defaultVarValues = {}
         self.app = app
         os.makedirs(self.TEMPLATES_FOLDER, exist_ok=True)
         uic.loadUi(os.path.join(__file__, os.path.pardir, "design", "main_window.ui"), self)
@@ -72,9 +73,8 @@ class TemplatoronMainWindow(FramelessWindow):
         for name, icon, pred in self.COMBO_DATA:
             if pred():
                 self.ComboOpenVia.addItem(QIcon(f":/open_via/open_icons/{icon}.svg"), name)
-        self.defaultVarValues = {}
-        self.connector()
         self.loadConfiguration()
+        self.connector()
         for font in ["inter.ttf", "firacode.ttf"]:
             QtGui.QFontDatabase.addApplicationFont(os.path.join(__file__, os.path.pardir, "fonts", font))
         self.scan_files()
