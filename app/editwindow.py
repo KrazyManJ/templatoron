@@ -6,14 +6,14 @@ from PyQt5.QtWidgets import QApplication
 from qframelesswindow import FramelessWindow
 
 from app.components.titlebar import TitleBar
-from app.src import utils
+from app.src import utils, pather
 
 
 class TemplatoronEditWindow(FramelessWindow):
     
     def __init__(self):
         super().__init__()
-        uic.loadUi(os.path.join(__file__, os.path.pardir, "design", "edit_window.ui"), self)
+        uic.loadUi(pather.design_file("edit_window.ui"), self)
         self.setTitleBar(TitleBar(self))
         self.setWindowModality(Qt.ApplicationModal)
         utils.center_widget(QApplication.instance(),self)

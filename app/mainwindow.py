@@ -1,13 +1,11 @@
-import json
 import os.path
 
 import pyvscode  # type: ignore
 from PyQt5 import uic, QtGui
-from PyQt5.QtCore import Qt, QItemSelection, QEvent
+from PyQt5.QtCore import Qt, QItemSelection
 from PyQt5.QtGui import QCursor, QIcon, QFont
 from PyQt5.QtWidgets import *
 from qframelesswindow import FramelessWindow
-from showinfm import show_in_file_manager
 
 from app.components.templateitem import TemplateItem
 from app.components.titlebar import TitleBar
@@ -15,15 +13,13 @@ from app.components.variableinput import VariableInput
 from app.components.windows.console import ConsoleWindow
 from app.components.windows.createtemplate import CreateTemplate
 from app.components.windows.defaultvar import DefaultVariableWindow
+from app.design import styleconstants
 from app.editwindow import TemplatoronEditWindow
-from app.src import templatoron, git, utils, dialog, systemsupport
-from app.src.jetbrains_ides import IDEs, open_file_in_ide, is_ide_installed
+from app.src import templatoron, git, utils, dialog, pather, configuration, openvia
 from app.src.templatoron import TemplatoronResponse
 
 
 class TemplatoronMainWindow(FramelessWindow):
-    TEMPLATES_FOLDER = "templates"
-
     # ===================================================================================
     # WIDGETS
     # ===================================================================================
@@ -38,7 +34,6 @@ class TemplatoronMainWindow(FramelessWindow):
     ComboOpenVia: QComboBox
     CheckInitGit: QCheckBox
     NoTemplatesFoundLabel: QLabel
-    TemplateListContent: QFrame
     TemplateListView: QTreeWidget
     DirectoryDisplay: QTreeWidget
     VariableListContent: QWidget
@@ -50,12 +45,6 @@ class TemplatoronMainWindow(FramelessWindow):
     CreateTemplateBtn: QPushButton
     EditTemplateBtn: QPushButton
 
-    COMBO_DATA = [("Nothing", "nothing", lambda: True), ("File Explorer", "file_explorer", lambda: True),
-                  ("Visual Studio Code", "vscode", lambda: pyvscode.is_present()),
-                  ("PyCharm", "pycharm", lambda: is_ide_installed(IDEs.PYCHARM)),
-                  ("PhpStorm", "phpstorm", lambda: is_ide_installed(IDEs.PHPSTORM)),
-                  ("IntelliJ IDEA", "idea", lambda: is_ide_installed(IDEs.INTELLIJ))]
-
     # ===================================================================================
     # INIT
     # ===================================================================================
@@ -63,39 +52,28 @@ class TemplatoronMainWindow(FramelessWindow):
     def __init__(self, app: QApplication):
         super().__init__()
         self.defaultVarValues = {}
-        self.app = app
-        os.makedirs(self.TEMPLATES_FOLDER, exist_ok=True)
-        uic.loadUi(os.path.join(__file__, os.path.pardir, "design", "main_window.ui"), self)
+        uic.loadUi(pather.design_file("main_window.ui"), self)
         self.setTitleBar(TitleBar(self))
         self.shadowEngine()
-        utils.center_widget(self.app, self)
-        for name, icon, pred in self.COMBO_DATA:
+        utils.center_widget(QApplication.instance(), self)
+        for name, icon, pred in openvia.CHECK_DATA:
             if pred():
                 self.ComboOpenVia.addItem(QIcon(f":/open_via/open_icons/{icon}.svg"), name)
         self.loadConfiguration()
         self.connector()
-        for font in ["inter.ttf", "firacode.ttf"]:
-            QtGui.QFontDatabase.addApplicationFont(os.path.join(__file__, os.path.pardir, "fonts", font))
-        self.scan_files()
-        (self.TemplateListView.hide if len(
-            os.listdir(self.TEMPLATES_FOLDER)) == 0 else self.NoTemplatesFoundLabel.hide)()
+        self.update_template_list()
         self.set_content_state(False)
         self.set_create_project_button_state(False)
         self.set_edit_template_button_state(False)
         self.VariableListHeader.hide()
         self.CheckCloseApp.setIcon(QIcon(":/titlebar/titlebar/close.svg"))
         self.CheckInitGit.setIcon(QIcon(":/content/github.svg"))
-
         if not git.is_installed(): self.CheckInitGit.hide()
-
         self.TemplateListView.setContextMenuPolicy(Qt.CustomContextMenu)
         self.TemplateLabel.setFocus()
-        self.installEventFilter(self)
 
-    def eventFilter(self, obj, event):
-        if event.type() == QEvent.MouseButtonPress:
-            self.clearFocus()
-        return super().eventFilter(obj, event)
+    def mousePressEvent(self, a0: QtGui.QMouseEvent) -> None:
+        self.clearFocus()
 
     def connector(self):
         self.CreateTemplateBtn.clicked.connect(self.create_template)  # type: ignore
@@ -107,7 +85,7 @@ class TemplatoronMainWindow(FramelessWindow):
         self.CheckInitGit.stateChanged.connect(self.settingPropertyChanged)  # type: ignore
         self.DefaultValuesBtn.clicked.connect(self.setDefaultParameters)  # type: ignore
         self.TemplateListView.customContextMenuRequested.connect(self.templateTreeContextMenu)  # type: ignore
-        self.TemplateListView.mouseMoveEvent = lambda ev: None
+        self.TemplateListView.mouseMoveEvent = lambda ev: None  # Disables mouse drag selecting (causes crash)
         self.EditTemplateBtn.clicked.connect(self.edit_template)  # type: ignore
 
     def shadowEngine(self):
@@ -121,24 +99,21 @@ class TemplatoronMainWindow(FramelessWindow):
     # ===================================================================================
 
     def loadConfiguration(self):
-        if not os.path.exists("configuration.json"):
-            open("configuration.json", "w").write("{}")
-        data: dict = json.load(open("configuration.json", "r"))
-        oPath = os.path.abspath(data.get("output_path", systemsupport.desktop_path()))
-        if os.path.isdir(oPath):
-            self.OutputPathInput.setText(oPath)
-        self.CheckCloseApp.setChecked(data.get("close_app", False))
-        self.CheckInitGit.setChecked(data.get("init_git", False))
-        open_via = data.get("open_via", "Nothing")
-        available = [name for name, icon, pred in self.COMBO_DATA if pred]
-        self.ComboOpenVia.setCurrentText(open_via if open_via in available else "Nothing")
-        self.defaultVarValues = data.get("default_var_values", {})
+        data: dict = configuration.load()
+        self.OutputPathInput.setText(data["output_path"])
+        self.CheckCloseApp.setChecked(data["close_app"])
+        self.CheckInitGit.setChecked(data["init_git"])
+        self.ComboOpenVia.setCurrentText(data["open_via"])
+        self.defaultVarValues = data["default_var_values"]
 
     def saveConfiguration(self):
-        json.dump({"output_path": self.OutputPathInput.text(), "close_app": self.CheckCloseApp.isChecked(),
-                   "init_git": self.CheckInitGit.isChecked(), "open_via": self.ComboOpenVia.currentText(),
-                   "default_var_values": self.defaultVarValues}, open("configuration.json", "w"), indent=4,
-                  sort_keys=True)
+        configuration.save({
+            "output_path": self.OutputPathInput.text(),
+            "close_app": self.CheckCloseApp.isChecked(),
+            "init_git": self.CheckInitGit.isChecked(),
+            "open_via": self.ComboOpenVia.currentText(),
+            "default_var_values": self.defaultVarValues
+        })
 
     def closeEvent(self, a0: QtGui.QCloseEvent) -> None:
         self.saveConfiguration()
@@ -176,8 +151,8 @@ class TemplatoronMainWindow(FramelessWindow):
         self.set_app_state(False)
         response = temp.create_project(self.OutputPathInput.text(), **varvals)
         for restype, message in [
-            (TemplatoronResponse.ACCESS_DENIED, "Access denied by operating system while trying to create project!",),
-            (TemplatoronResponse.ALREADY_EXIST, "There is already existing project with these parameters!",)]:
+            (TemplatoronResponse.ACCESS_DENIED, "Access denied by operating system while trying to create project!"),
+            (TemplatoronResponse.ALREADY_EXIST, "There is already existing project with these parameters!")]:
             if response == restype:
                 dialog.Warn(message)
                 self.set_app_state(True)
@@ -185,14 +160,9 @@ class TemplatoronMainWindow(FramelessWindow):
         if len(temp.commands) > 0:
             ConsoleWindow(temp.commands, temp.command_path(self.OutputPathInput.text(), **varvals)).exec()
         self.set_app_state(True)
-        for label, fct in {"File Explorer": lambda: show_in_file_manager(resallpaths, False),
-                           "Visual Studio Code": lambda: pyvscode.open_folder(
-                               *([pth, resallpaths] if len(resallpaths) > 1 else [respath])),
-                           "PyCharm": lambda: open_file_in_ide(IDEs.PYCHARM, resallpaths),
-                           "IntelliJ IDEA": lambda: open_file_in_ide(IDEs.INTELLIJ, resallpaths),
-                           "PhpStorm": lambda: open_file_in_ide(IDEs.PHPSTORM, resallpaths)}.items():
+        for label, fct in openvia.OPEN_DATA.items():
             if self.ComboOpenVia.currentText() == label:
-                fct()
+                fct(pth, respath, resallpaths)
                 break
 
         if self.CheckInitGit.isChecked():
@@ -318,7 +288,7 @@ class TemplatoronMainWindow(FramelessWindow):
         val = CreateTemplate().exec()
         if val is not None:
             created = templatoron.TemplatoronObject.from_file(val)
-            self.scan_files()
+            self.update_template_list()
             iterator = QTreeWidgetItemIterator(self.TemplateListView)
             while iterator.value():
                 item = iterator.value()
@@ -329,13 +299,19 @@ class TemplatoronMainWindow(FramelessWindow):
                 iterator += 1
         self.set_app_state(True)
 
-    def scan_files(self):
+    def update_template_list(self):
+        if len(os.listdir(pather.TEMPLATES_FOLDER)) == 0:
+            self.TemplateListView.hide()
+            self.NoTemplatesFoundLabel.show()
+            return
+        self.TemplateListView.show()
+        self.NoTemplatesFoundLabel.hide()
         self.TemplateListView.clear()
         categories, files = [], []
         f = QFont()
         f.setBold(True)
-        for a in os.listdir(self.TEMPLATES_FOLDER):
-            pth = os.path.abspath(os.path.join(self.TEMPLATES_FOLDER, a))
+        for p in pather.listdirfullpath(pather.TEMPLATES_FOLDER):
+            pth = os.path.abspath(p)
             if os.path.exists(pth):
                 if os.path.isfile(pth):
                     item = TemplateItem(pth)
@@ -366,32 +342,9 @@ class TemplatoronMainWindow(FramelessWindow):
         name = item.text(0)
         menu = QMenu()
         menu.addAction("Edit", lambda: self.edit_template())
-        menu.addAction("Remove", lambda: self.remove_template(item))
-        menu.setStyleSheet("""
-        QMenu {
-            background-color: #292929;
-            font: 15pt "Inter";
-            color: white;
-            border: 1px solid #444;
-            border-radius: 15px;
-            padding: 10px;
-        }
-        QMenu::item {
-            padding: 2px 25px 2px 20px;
-            border: 1px solid transparent;
-            border-radius: 5px;
-        }
-        QMenu::item:selected {
-            background: #333;
-            border: 1px solid #666;
-        }
-        QMenu::item:pressed {
-            background: #444;
-            border: 1px solid #666;
-        }
-        """)
-
-        menu.exec_(self.TemplateListView.mapToGlobal(pos))
+        menu.addAction("Remove", lambda: self.remove_template(item))  # type: ignore
+        menu.setStyleSheet(styleconstants.QMENU)
+        menu.exec(self.TemplateListView.mapToGlobal(pos))
 
     def remove_template(self, item):
         if not dialog.Confirm(f'Are you sure you want to remove template "{item.Template.name}"?'):

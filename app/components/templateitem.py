@@ -1,15 +1,13 @@
 import base64
 import os.path
 
-from PyQt5.QtCore import Qt
 from PyQt5.QtGui import QPixmap, QIcon
-from PyQt5.QtWidgets import QListWidgetItem, QTreeWidgetItem, QMenu, QAction
+from PyQt5.QtWidgets import QTreeWidgetItem
 
 from app.src.templatoron import TemplatoronObject
 
 
 class TemplateItem(QTreeWidgetItem):
-
     Template: TemplatoronObject
 
     def __init__(self, path: str):
@@ -19,8 +17,8 @@ class TemplateItem(QTreeWidgetItem):
 
         pixmap = QPixmap()
         pixmap.loadFromData(base64.b64decode(obj.icon))
-        self.setIcon(0,QIcon(pixmap))
-        self.setToolTip(0,obj.name)
+        self.setIcon(0, QIcon(pixmap))
+        self.setToolTip(0, obj.name)
         self.Template = obj
 
     def remove(self):
