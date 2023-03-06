@@ -9,7 +9,7 @@ managed to prepare the necessary files, libraries, etc. for their work, either
 they forgot the idea or simply lost the desire to work on it.
 
 But this time it is over with **Templatoron**! Application to create projects
-from templates fast to enhance your workflow. Comes with minimalistic and easy to
+from templates fast to enhance your workflow. Comes with minimalistic and easy interface to
 use!
 
 ![](readme/app_view.png)
