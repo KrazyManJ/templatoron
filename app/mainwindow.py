@@ -13,7 +13,7 @@ from app.components.variableinput import VariableInput
 from app.components.windows.console import ConsoleWindow
 from app.components.windows.createtemplate import CreateTemplate
 from app.components.windows.defaultvar import DefaultVariableWindow
-from app.design import styleconstants
+from app.design.__constants__ import StyleConstants
 from app.editwindow import TemplatoronEditWindow
 from app.src import templatoron, git, utils, dialog, pather, configuration, openvia
 from app.src.templatoron import TemplatoronResponse
@@ -312,19 +312,18 @@ class TemplatoronMainWindow(FramelessWindow):
         f.setBold(True)
         for p in pather.listdirfullpath(pather.TEMPLATES_FOLDER):
             pth = os.path.abspath(p)
-            if os.path.exists(pth):
-                if os.path.isfile(pth):
-                    item = TemplateItem(pth)
-                    files.append(item)
-                elif os.path.isdir(pth):
-                    ctgname = os.path.basename(pth)
-                    cat = QTreeWidgetItem([ctgname])
-                    cat.setFont(0, f)
-                    categories.append(cat)
-                    for i in os.listdir(pth):
-                        incatpath = os.path.join(pth, i)
-                        if os.path.isfile(incatpath):
-                            cat.addChild(TemplateItem(incatpath))
+            if not os.path.exists(pth):
+                continue
+            if os.path.isfile(pth):
+                item = TemplateItem(pth)
+                files.append(item)
+            elif os.path.isdir(pth):
+                ctgname = os.path.basename(pth)
+                cat = QTreeWidgetItem([ctgname])
+                cat.setFont(0, f)
+                categories.append(cat)
+                for i in [p for p in pather.listdirfullpath(pth) if os.path.isfile(p)]:
+                    cat.addChild(TemplateItem(i))
 
         self.TemplateListView.addTopLevelItems(sorted(categories, key=lambda x: x.text(0)))
         self.TemplateListView.addTopLevelItems(sorted(files, key=lambda x: x.text(0)))
@@ -343,7 +342,7 @@ class TemplatoronMainWindow(FramelessWindow):
         menu = QMenu()
         menu.addAction("Edit", lambda: self.edit_template())
         menu.addAction("Remove", lambda: self.remove_template(item))  # type: ignore
-        menu.setStyleSheet(styleconstants.QMENU)
+        menu.setStyleSheet(StyleConstants.QMENU)
         menu.exec(self.TemplateListView.mapToGlobal(pos))
 
     def remove_template(self, item):
