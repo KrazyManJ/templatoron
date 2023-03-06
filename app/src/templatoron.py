@@ -4,7 +4,6 @@ import os
 import re
 from enum import Enum
 from os import PathLike
-from pathlib import Path
 
 import jsonschema
 
@@ -32,7 +31,6 @@ class TemplatoronResponse(Enum):
 
 class TemplatoronObject:
     name: str = "Unnamed"
-    filename: str = "unnamed"
     structure: dict = {}
     variables: list[dict[str, str]] = []
     commands: list[str] = []
@@ -85,7 +83,6 @@ class TemplatoronObject:
         R = TemplatoronObject()
         data: dict = json.load(open(path, "r", encoding=ENC), object_hook=decypt)
         R.name = data.get("name", "Unnamed")
-        R.filename = Path(path).stem
         R.icon = data.get("icon", "")
         R.structure = data.get("structure", {})
         R.variables = data.get("variables", [])
@@ -183,7 +180,7 @@ class TemplatoronObject:
 
         return file_name_checker(self.structure)
 
-    def command_path(self,output_path,**variable_values):
+    def command_path(self, output_path, **variable_values):
         if self.is_single_dir():
             return os.path.join(output_path, parse_variable_values(list(self.structure.keys())[0], variable_values))
         else:
@@ -197,12 +194,9 @@ class TemplatoronObject:
             (self.name, o.name),
             (self.variables, o.variables),
             (self.icon, o.icon),
-            (self.filename, o.filename),
             (self.commands, o.commands)
         ]:
             if a1 is not a2:
                 print(a1, a2)
                 return False
         return True
-
-

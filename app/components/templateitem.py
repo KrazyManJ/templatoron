@@ -1,4 +1,5 @@
 import base64
+import os.path
 
 from PyQt5.QtCore import Qt
 from PyQt5.QtGui import QPixmap, QIcon
@@ -21,3 +22,7 @@ class TemplateItem(QTreeWidgetItem):
         self.setIcon(0,QIcon(pixmap))
         self.setToolTip(0,obj.name)
         self.Template = obj
+
+    def remove(self):
+        if os.path.exists(self.path):
+            os.remove(self.path)

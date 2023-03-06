@@ -87,7 +87,7 @@ QLineEdit {
 	border-radius: 5px;
 	color: white;
 	margin-right: 10px;
-border: 1px solid transparent;
+	border: 1px solid transparent;
 }
 #TemplateListView::item:selected {
 	background: #222;
@@ -95,12 +95,15 @@ border: 1px solid transparent;
 	color: white;
 }
 #TemplateListView::branch:closed:has-children {
-        border-image: none;
-        image: url(:/content/chevron-right.svg)
+    border-image: none;
+    image: url(:/content/chevron-right.svg)
 }
 #TemplateListView::branch:open:has-children  {
-        border-image: none;
-        image: url(:/content/chevron-down.svg)
+	border-image: none;
+    image: url(:/content/chevron-down.svg)
+}
+#TemplateListView:focus {
+	border: 1px solid #555;
 }
 QScrollBar:vertical{
 	width: 20px;
@@ -244,7 +247,7 @@ QCheckBox:focus {
 	border: 2px solid #888;
 	border-radius: 10px;
 }
-QPushButton:focus,QTreeWidget:focus {
+QPushButton:focus {
 	outline: 0;
 	border: 2px solid #888;
 }

@@ -4,7 +4,7 @@ import os.path
 import pyvscode  # type: ignore
 from PyQt5 import uic, QtGui
 from PyQt5.QtCore import Qt, QItemSelection, QEvent
-from PyQt5.QtGui import QCursor, QIcon, QFont, QPalette, QBrush, QPixmap
+from PyQt5.QtGui import QCursor, QIcon, QFont
 from PyQt5.QtWidgets import *
 from qframelesswindow import FramelessWindow
 from showinfm import show_in_file_manager
@@ -56,7 +56,6 @@ class TemplatoronMainWindow(FramelessWindow):
                   ("PhpStorm", "phpstorm", lambda: is_ide_installed(IDEs.PHPSTORM)),
                   ("IntelliJ IDEA", "idea", lambda: is_ide_installed(IDEs.INTELLIJ))]
 
-
     # ===================================================================================
     # INIT
     # ===================================================================================
@@ -106,10 +105,10 @@ class TemplatoronMainWindow(FramelessWindow):
         self.ComboOpenVia.currentTextChanged.connect(self.settingPropertyChanged)  # type: ignore
         self.CheckCloseApp.stateChanged.connect(self.settingPropertyChanged)  # type: ignore
         self.CheckInitGit.stateChanged.connect(self.settingPropertyChanged)  # type: ignore
-        self.DefaultValuesBtn.clicked.connect(self.setDefaultParameters) # type: ignore
-        self.TemplateListView.customContextMenuRequested.connect(self.templateTreeContextMenu) # type: ignore
+        self.DefaultValuesBtn.clicked.connect(self.setDefaultParameters)  # type: ignore
+        self.TemplateListView.customContextMenuRequested.connect(self.templateTreeContextMenu)  # type: ignore
         self.TemplateListView.mouseMoveEvent = lambda ev: None
-        self.EditTemplateBtn.clicked.connect(self.edit_template) # type: ignore
+        self.EditTemplateBtn.clicked.connect(self.edit_template)  # type: ignore
 
     def shadowEngine(self):
         utils.apply_shadow(self.TemplateLabel, 150, r=30)
@@ -265,7 +264,7 @@ class TemplatoronMainWindow(FramelessWindow):
     # ===================================================================================
 
     def is_template_selected(self):
-        return len([a for a in self.TemplateListView.selectedItems() if isinstance(a,TemplateItem)]) == 1
+        return len([a for a in self.TemplateListView.selectedItems() if isinstance(a, TemplateItem)]) == 1
 
     def get_selected(self) -> TemplateItem:
         return self.TemplateListView.currentItem()  # type: ignore
@@ -318,13 +317,13 @@ class TemplatoronMainWindow(FramelessWindow):
         self.set_app_state(False)
         val = CreateTemplate().exec()
         if val is not None:
-            xd = templatoron.TemplatoronObject.from_file(val)
+            created = templatoron.TemplatoronObject.from_file(val)
             self.scan_files()
             iterator = QTreeWidgetItemIterator(self.TemplateListView)
             while iterator.value():
                 item = iterator.value()
                 if isinstance(item, TemplateItem):
-                    if item.Template.filename == xd.filename:
+                    if os.path.abspath(item.path) == os.path.abspath(val):
                         self.TemplateListView.setCurrentItem(item)
                         break
                 iterator += 1
@@ -366,8 +365,8 @@ class TemplatoronMainWindow(FramelessWindow):
             return
         name = item.text(0)
         menu = QMenu()
-        menu.addAction("Edit")
-        menu.addAction("Remove")
+        menu.addAction("Edit", lambda: self.edit_template())
+        menu.addAction("Remove", lambda: self.remove_template(item))
         menu.setStyleSheet("""
         QMenu {
             background-color: #292929;
@@ -393,6 +392,18 @@ class TemplatoronMainWindow(FramelessWindow):
         """)
 
         menu.exec_(self.TemplateListView.mapToGlobal(pos))
+
+    def remove_template(self, item):
+        if not dialog.Confirm(f'Are you sure you want to remove template "{item.Template.name}"?'):
+            return
+        if self.get_selected() == item:
+            self.unselect_template()
+        item.remove()
+        index = self.TemplateListView.indexOfTopLevelItem(item)
+        if index == -1:
+            item.parent().removeChild(item)
+        else:
+            self.TemplateListView.takeTopLevelItem(index)
 
     def edit_template(self):
         if not self.is_template_selected():
