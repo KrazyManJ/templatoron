@@ -17,7 +17,7 @@ use!
 ## Features
 
 - [X] Create projects from templates
-- [X] Input parameters to set up project to way you want
+- [X] Input parameters to set up project the way you want
 - [X] Open project via file explorer or one of the IDEs (Visual Studio Code, IntelliJ IDEA, PyCharm, ...)
 - [X] Initialize Git Repository
 - [X] Set default values for each templates, so you dont have to enter it again and again
