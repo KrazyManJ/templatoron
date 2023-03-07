@@ -7,6 +7,7 @@ from PyQt5.QtGui import QCursor, QIcon, QFont
 from PyQt5.QtWidgets import *
 from qframelesswindow import FramelessWindow
 
+import app.src.graphiceffects as graphiceffects
 from app.components.templateitem import TemplateItem
 from app.components.titlebar import TitleBar
 from app.components.variableinput import VariableInput
@@ -89,10 +90,10 @@ class TemplatoronMainWindow(FramelessWindow):
         self.EditTemplateBtn.clicked.connect(self.edit_template)  # type: ignore
 
     def shadowEngine(self):
-        utils.apply_shadow(self.TemplateLabel, 150, r=30)
-        utils.apply_shadow(self.DirectoryDisplayLabel, 40)
-        utils.apply_shadow(self.VariableListLabel, 40)
-        utils.apply_shadow(self.CreateProjectBtn, 40)
+        graphiceffects.shadow(self.TemplateLabel, 150, r=30)
+        graphiceffects.shadow(self.DirectoryDisplayLabel, 40)
+        graphiceffects.shadow(self.VariableListLabel, 40)
+        graphiceffects.shadow(self.CreateProjectBtn, 40)
 
     # ===================================================================================
     # CONFIGURATION LOADER/SAVER
@@ -283,20 +284,24 @@ class TemplatoronMainWindow(FramelessWindow):
         self.VariableListHeader.hide()
         self.update_tree_view()
 
+    def select_template(self,path):
+        iterator = QTreeWidgetItemIterator(self.TemplateListView)
+        while iterator.value():
+            item = iterator.value()
+            if isinstance(item, TemplateItem):
+                if os.path.abspath(item.path) == os.path.abspath(path):
+                    self.TemplateListView.setCurrentItem(item)
+                    break
+            iterator += 1
+
     def create_template(self):
         self.set_app_state(False)
         val = CreateTemplate().exec()
         if val is not None:
             created = templatoron.TemplatoronObject.from_file(val)
             self.update_template_list()
-            iterator = QTreeWidgetItemIterator(self.TemplateListView)
-            while iterator.value():
-                item = iterator.value()
-                if isinstance(item, TemplateItem):
-                    if os.path.abspath(item.path) == os.path.abspath(val):
-                        self.TemplateListView.setCurrentItem(item)
-                        break
-                iterator += 1
+            self.select_template(val)
+            self.edit_template()
         self.set_app_state(True)
 
     def update_template_list(self):
@@ -361,39 +366,43 @@ class TemplatoronMainWindow(FramelessWindow):
         if not self.is_template_selected():
             return
         self.set_app_state(False)
-        TemplatoronEditWindow().exec()
+        updatedTemplate = TemplatoronEditWindow(self.get_selected().Template).exec()
+        self.get_selected().Template = updatedTemplate
+        self.get_selected().save()
+        pth = self.get_selected().path
+        self.update_template_list()
+        self.select_template(pth)
         self.set_app_state(True)
 
     # ===================================================================================
     # STATES CHANGES
     # ===================================================================================
 
+    @classmethod
+    def __opacity(cls, widget, state: bool):
+        if state:
+            graphiceffects.clear(widget)
+        else:
+            graphiceffects.opacity(widget, 0.5)
+
     def set_content_state(self, state: bool):
-        opacity_effect = QGraphicsOpacityEffect()
-        opacity_effect.setOpacity(0.5)
-        self.MainFrame.setGraphicsEffect(None if state else opacity_effect)
+        self.__opacity(self.MainFrame, state)
         self.MainFrame.setToolTip(None if state else "Firstly select template at the left panel.")
         self.MainContentFrame.setEnabled(state)
         self.MainFrame.setCursor(QCursor(Qt.ArrowCursor if state else Qt.ForbiddenCursor))
 
     def set_create_project_button_state(self, state: bool):
-        opacity_effect = QGraphicsOpacityEffect()
-        opacity_effect.setOpacity(0.5)
-        self.CreateProjectBtn.setGraphicsEffect(None if state else opacity_effect)
+        self.__opacity(self.CreateProjectBtn, state)
         self.CreateProjectBtn.setCursor(QCursor(Qt.PointingHandCursor if state else Qt.ForbiddenCursor))
         self.CreateProjectBtn.setToolTip(None if state else "You need to enter all parameters before creation.")
 
     def set_edit_template_button_state(self, state: bool):
-        opacity_effect = QGraphicsOpacityEffect()
-        opacity_effect.setOpacity(0.5)
-        self.EditTemplateBtn.setGraphicsEffect(None if state else opacity_effect)
+        self.__opacity(self.EditTemplateBtn, state)
         self.EditTemplateBtn.setCursor(QCursor(Qt.PointingHandCursor if state else Qt.ForbiddenCursor))
         self.EditTemplateBtn.setToolTip(None if state else "You need to select some template to be able to edit it!")
 
     def set_app_state(self, state: bool):
-        opacity_effect = QGraphicsOpacityEffect()
-        opacity_effect.setOpacity(0.5)
-        self.TemplateListFrame.setGraphicsEffect(None if state else opacity_effect)
+        self.__opacity(self.TemplateListView, state)
         self.TemplateListFrame.setEnabled(state)
         self.setCursor(QCursor(Qt.ArrowCursor if state else Qt.ForbiddenCursor))
         self.set_content_state(state if not state else self.is_template_selected())

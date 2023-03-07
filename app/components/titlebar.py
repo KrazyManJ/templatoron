@@ -6,6 +6,8 @@ from PyQt5.QtCore import Qt
 from PyQt5.QtWidgets import *
 from qframelesswindow.utils import startSystemMove
 
+import app.src.graphiceffects
+from app.design.__constants__ import StyleConstants
 from app.src import utils
 
 
@@ -26,7 +28,7 @@ class TitleBar(QWidget):
         ]
         for widg, fct in BTN_MAP:
             widg.clicked.connect(fct)
-            utils.apply_shadow(widg,50)
+            app.src.graphiceffects.shadow(widg, 50)
         self.__updateIcon()
         self.window().installEventFilter(self)
 
@@ -62,4 +64,4 @@ class TitleBar(QWidget):
     def __updateIcon(self, state = None):
         if state is None:
             state = self.window().isMaximized()
-        self.BtnMax.setStyleSheet("border-image: url(:/titlebar/titlebar/normalize.svg);" if state else "")
+        self.BtnMax.setStyleSheet(StyleConstants.TITLEBAR_NORMALIZE_BTN if state else "")

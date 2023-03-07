@@ -4,7 +4,8 @@ from PyQt5 import uic
 from PyQt5.QtCore import Qt, QEventLoop
 from PyQt5.QtWidgets import QWidget
 
-from app.src import utils
+import app.src.graphiceffects
+from app.src import utils, pather
 
 
 class QFramelessModal(QWidget):
@@ -15,11 +16,11 @@ class QFramelessModal(QWidget):
 
     def __init__(self, uiFileName: str):
         super().__init__()
-        uic.loadUi(os.path.join(__file__, os.path.pardir, os.path.pardir, os.path.pardir, "design", uiFileName), self)
+        uic.loadUi(pather.design_file(uiFileName), self)
         self.setWindowFlag(Qt.FramelessWindowHint)
         self.setAttribute(Qt.WA_TranslucentBackground)
         self.setWindowModality(Qt.ApplicationModal)
-        utils.apply_shadow(self.Content, 50, y=0, r=20)
+        app.src.graphiceffects.shadow(self.Content, 50, y=0, r=20)
         self.TitleBar.mousePressEvent = self.draggableClick
         self.TitleBar.mouseMoveEvent = self.draggableMove
         self.TitleBar.mouseReleaseEvent = self.draggableRelease

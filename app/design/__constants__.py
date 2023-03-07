@@ -2,6 +2,21 @@
 
 class StyleConstants:
 
+    VAR_INPUT = """
+    QFrame {
+        background: #141414;
+        max-height: 40px;
+        min-height: 40px;
+        border-radius: 10px;
+        border: 1px solid #555;
+    }
+    QLineEdit {
+        background: transparent;
+        border: none;
+        font: 10pt "Fira Code";
+        color: #ccc;
+    }
+    """
     QMENU = """
     QMenu {
         background-color: #292929;
@@ -25,3 +40,5 @@ class StyleConstants:
         border: 1px solid #666;
     }
     """
+
+    TITLEBAR_NORMALIZE_BTN = "border-image: url(:/titlebar/titlebar/normalize.svg);"

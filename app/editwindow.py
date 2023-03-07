@@ -7,12 +7,14 @@ from qframelesswindow import FramelessWindow
 
 from app.components.titlebar import TitleBar
 from app.src import utils, pather
+from app.src.templatoron import TemplatoronObject
 
 
 class TemplatoronEditWindow(FramelessWindow):
     
-    def __init__(self):
+    def __init__(self, template: TemplatoronObject):
         super().__init__()
+        self.Template = template
         uic.loadUi(pather.design_file("edit_window.ui"), self)
         self.setTitleBar(TitleBar(self))
         self.setWindowModality(Qt.ApplicationModal)
@@ -22,6 +24,7 @@ class TemplatoronEditWindow(FramelessWindow):
     def exec(self):
         self.show()
         self.__loop.exec()
+        return self.Template
 
     def closeEvent(self, a0) -> None:
         self.__loop.exit()

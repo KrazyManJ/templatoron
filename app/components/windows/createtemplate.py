@@ -4,6 +4,7 @@ from PyQt5.QtCore import QRegExp, Qt
 from PyQt5.QtGui import QRegExpValidator, QCursor
 from PyQt5.QtWidgets import QPushButton, QLineEdit, QLabel, QGraphicsOpacityEffect
 
+import app.src.graphiceffects
 from app.components.abstract.qframelessmodal import QFramelessModal
 from app.src import utils, templatoron, dialog
 
@@ -18,7 +19,7 @@ class CreateTemplate(QFramelessModal):
     def __init__(self):
         super().__init__("create_template_window.ui")
         self.BtnClose.clicked.connect(self.close)
-        utils.apply_shadow(self.BtnClose, 50)
+        app.src.graphiceffects.shadow(self.BtnClose, 50)
         self.ExtLabel.setText(templatoron.EXT)
         self.__val = None
         regex = QRegExp(templatoron.ILLEGAL_CHARS)

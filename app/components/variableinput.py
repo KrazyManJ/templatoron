@@ -1,12 +1,13 @@
 from PyQt5.QtCore import QRegExp
 from PyQt5.QtGui import QRegExpValidator
-from PyQt5.QtWidgets import QFrame, QLineEdit, QLabel, QVBoxLayout, QSizePolicy, QAction, QMenu
+from PyQt5.QtWidgets import QFrame, QLineEdit, QLabel, QVBoxLayout, QSizePolicy
 
+from app.design.__constants__ import StyleConstants
 from app.src import templatoron
 
 
 class VariableInput(QFrame):
-    def __init__(self,var_id,label,file_mask=False):
+    def __init__(self, var_id, label, file_mask=False):
         super().__init__()
         sizePolicy = QSizePolicy(QSizePolicy.Preferred, QSizePolicy.Fixed)
         sizePolicy.setHeightForWidth(self.sizePolicy().hasHeightForWidth())
@@ -14,28 +15,14 @@ class VariableInput(QFrame):
         self.id = var_id
 
         self.main_layout = QVBoxLayout(self)
-        self.main_layout.setContentsMargins(0,0,0,0)
+        self.main_layout.setContentsMargins(0, 0, 0, 0)
         self.main_layout.setSpacing(0)
         self.label = QLabel(self)
         self.label.setText(label)
         self.label.setIndent(10)
         self.main_layout.addWidget(self.label)
         self.input_frame = QFrame(self)
-        self.input_frame.setStyleSheet("""
-    QFrame {
-        background: #141414;
-        max-height: 40px;
-        min-height: 40px;
-        border-radius: 10px;
-        border: 1px solid #555;
-    }
-    QLineEdit {
-        background: transparent;
-        border: none;
-        font: 10pt "Fira Code";
-        color: #ccc;
-    }
-                """)
+        self.input_frame.setStyleSheet(StyleConstants.VAR_INPUT)
         self.main_layout.addWidget(self.input_frame)
         self.input_layout = QVBoxLayout(self.input_frame)
         self.input = QLineEdit(self.input_frame)
@@ -45,6 +32,9 @@ class VariableInput(QFrame):
             validator = QRegExpValidator(regex)
             self.input.setValidator(validator)
             self.input.setMaxLength(255)
+
+    def set_value(self, value):
+        self.input.setText(value)
 
     def get_id(self):
         return self.id
