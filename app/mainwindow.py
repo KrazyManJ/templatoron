@@ -367,11 +367,12 @@ class TemplatoronMainWindow(FramelessWindow):
             return
         self.set_app_state(False)
         updatedTemplate = TemplatoronEditWindow(self.get_selected().Template).exec()
-        self.get_selected().Template = updatedTemplate
-        self.get_selected().save()
-        pth = self.get_selected().path
-        self.update_template_list()
-        self.select_template(pth)
+        if not updatedTemplate is None:
+            self.get_selected().Template = updatedTemplate
+            self.get_selected().save()
+            pth = self.get_selected().path
+            self.update_template_list()
+            self.select_template(pth)
         self.set_app_state(True)
 
     # ===================================================================================
@@ -402,7 +403,7 @@ class TemplatoronMainWindow(FramelessWindow):
         self.EditTemplateBtn.setToolTip(None if state else "You need to select some template to be able to edit it!")
 
     def set_app_state(self, state: bool):
-        self.__opacity(self.TemplateListView, state)
+        self.__opacity(self.TemplateListFrame, state)
         self.TemplateListFrame.setEnabled(state)
         self.setCursor(QCursor(Qt.ArrowCursor if state else Qt.ForbiddenCursor))
         self.set_content_state(state if not state else self.is_template_selected())

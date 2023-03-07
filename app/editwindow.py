@@ -6,7 +6,7 @@ from PyQt5.QtWidgets import QApplication
 from qframelesswindow import FramelessWindow
 
 from app.components.titlebar import TitleBar
-from app.src import utils, pather
+from app.src import utils, pather, dialog
 from app.src.templatoron import TemplatoronObject
 
 
@@ -20,12 +20,20 @@ class TemplatoronEditWindow(FramelessWindow):
         self.setWindowModality(Qt.ApplicationModal)
         utils.center_widget(QApplication.instance(),self)
         self.__loop = QEventLoop()
+        self.__done = False
 
-    def exec(self):
+    def exec(self) -> TemplatoronObject | None:
         self.show()
         self.__loop.exec()
         return self.Template
 
     def closeEvent(self, a0) -> None:
+        if not self.__done:
+            response = dialog.ConfirmCancel("Do you want to save all changes before closing edit window?")
+            if response == dialog.CANCEL:
+                a0.ignore()
+                return
+            if response == dialog.NO:
+                self.Template = None
         self.__loop.exit()
 
