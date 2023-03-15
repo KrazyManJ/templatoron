@@ -1,6 +1,5 @@
 import os.path
 
-import pyvscode  # type: ignore
 from PyQt5 import uic, QtGui
 from PyQt5.QtCore import Qt, QItemSelection
 from PyQt5.QtGui import QCursor, QIcon, QFont

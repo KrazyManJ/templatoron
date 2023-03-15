@@ -25,7 +25,7 @@ def jetbrains_ide_path(ide: IDEs):
 
 
 def open_file_in_ide(ide: IDEs, paths: list[str]):
-    subprocess.Popen([jetbrains_ide_path(ide), ",".join(paths)])
+    subprocess.Popen([jetbrains_ide_path(ide), ",".join(paths)],creationflags=subprocess.CREATE_NO_WINDOW)
 
 
 def is_ide_installed(ide: IDEs):
