@@ -26,6 +26,7 @@
 #TitleBar {
 	background: #292929;
 	min-height: 50px;
+	max-height: 50px;
 }</string>
   </property>
   <layout class="QVBoxLayout" name="verticalLayout">

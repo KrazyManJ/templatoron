@@ -1,5 +1,3 @@
-import os
-
 from PyQt5 import uic
 from PyQt5.QtCore import Qt, QEventLoop
 from PyQt5.QtWidgets import QApplication
@@ -20,7 +18,7 @@ class TemplatoronEditWindow(FramelessWindow):
         self.setWindowModality(Qt.ApplicationModal)
         utils.center_widget(QApplication.instance(),self)
         self.__loop = QEventLoop()
-        self.__done = False
+        self.__done = True
 
     def exec(self) -> TemplatoronObject | None:
         self.show()
