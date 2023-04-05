@@ -162,6 +162,27 @@ class TemplatoronObject:
             return TemplatoronResponse.ACCESS_DENIED
         return TemplatoronResponse.OK
 
+    def create_template_project(self, output_path: str | bytes | PathLike) -> TemplatoronResponse:
+        def file_creator(parent, file_or_folder_dict: dict):
+            for k, v in file_or_folder_dict.items():
+                fname = os.path.join(parent, k)
+                if type(v) is dict:
+                    os.mkdir(fname)
+                    file_creator(fname, v)
+                elif type(v) is str:
+                    open(fname, "wb").write(v.encode(ENC))
+
+        for root_paths in self.structure.keys():
+            if os.path.exists(os.path.join(output_path, root_paths)):
+                return TemplatoronResponse.ALREADY_EXIST
+        try:
+            os.makedirs(output_path, exist_ok=True)
+            file_creator(output_path, self.structure)
+        except PermissionError:
+            return TemplatoronResponse.ACCESS_DENIED
+        return TemplatoronResponse.OK
+
+
     def is_single_dir(self):
         return len(self.structure.keys()) == 1 and isinstance(list(self.structure.values())[0], dict)
 

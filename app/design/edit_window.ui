@@ -63,6 +63,19 @@
      <property name="frameShadow">
       <enum>QFrame::Raised</enum>
      </property>
+     <widget class="QPushButton" name="CreateTemplateProjectButton">
+      <property name="geometry">
+       <rect>
+        <x>20</x>
+        <y>20</y>
+        <width>171</width>
+        <height>28</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string>Create Template Project</string>
+      </property>
+     </widget>
     </widget>
    </item>
   </layout>
