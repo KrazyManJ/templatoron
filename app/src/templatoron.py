@@ -38,18 +38,10 @@ class TemplatoronObject:
 
     @staticmethod
     def __sort_dict(data):
-        def custom_sort(k):
-            return 0 if isinstance(data[k], dict) else 1
-
-        sorted_keys = sorted(data.keys(), key=custom_sort)
         sorted_dict = {}
-        for key in sorted_keys:
+        for key in sorted(data.keys(), key=lambda k: 0 if isinstance(data[k], dict) else 1):
             value = data[key]
-            if isinstance(value, dict):
-                sorted_dict[key] = TemplatoronObject.__sort_dict(value)
-            else:
-                sorted_dict[key] = value
-
+            sorted_dict[key] = TemplatoronObject.__sort_dict(value) if isinstance(value, dict) else value
         return sorted_dict
 
     @staticmethod
@@ -72,26 +64,24 @@ class TemplatoronObject:
         if not TemplatoronObject.is_valid_file(path):
             raise Exception("Is not Templatoron file!")
 
-        def decypt(d: dict):
-            if set(d.keys()) == {'displayname', 'id'} or set(d.keys()) == {'name', 'icon', 'structure', 'variables',
-                                                                           'commands'}: return d
-            r = {}
+        def structure_decode(d: dict):
             for k, v in d.items():
-                r[k] = base64.b64decode(v.encode(ENC)).decode(ENC) if type(v) == str else v
-            return r
+                if isinstance(v, dict):
+                    d[k] = structure_decode(v)
+                else:
+                    d[k] = base64.b64decode(v.encode(ENC)).decode(ENC)
+            return d
 
         R = TemplatoronObject()
-        data: dict = json.load(open(path, "r", encoding=ENC), object_hook=decypt)
+        data: dict = json.load(open(path, "r", encoding=ENC))
         R.name = data.get("name", "Unnamed")
         R.icon = data.get("icon", "")
-        R.structure = data.get("structure", {})
+        R.structure = structure_decode(data.get("structure", {}))
         R.variables = data.get("variables", [])
         R.commands = data.get("commands", [])
         return R
 
-    @staticmethod
-    def from_scaning_folder_or_file(path: str | bytes | PathLike, include_folder: bool = True,
-                                    ignore_names: list[str | bytes | PathLike] | None = None):
+    def scan(self, path, include_folder: bool = True, ignore_names: list = None):
         variables = set({})
         if ignore_names is None:
             ignore_names = []
@@ -108,33 +98,29 @@ class TemplatoronObject:
                 r[val] = folder_scan(pth) if os.path.isdir(pth) else var_finder(open(pth, "rb").read().decode(ENC))
             return r
 
-        def is_file_only(data_dict: dict):
-            return len([v for v in data_dict.values() if isinstance(v, str)]) == 0
-
-        R = TemplatoronObject()
         if os.path.isfile(path):
-            R.structure = {os.path.basename(path): var_finder(open(path, "rb").read().decode(ENC))}
+            self.structure = {os.path.basename(path): var_finder(open(path, "rb").read().decode(ENC))}
         else:
-            R.structure = TemplatoronObject.__sort_dict(
+            self.structure = TemplatoronObject.__sort_dict(
                 {os.path.basename(path): folder_scan(path)} if include_folder else folder_scan(path))
-        R.variables = sorted([{"id": a, "displayname": a.replace("_", " ").capitalize()} for a in variables],
-                             key=lambda v: v["id"])
-        return R
+        self.variables = sorted([{"id": a, "displayname": a.replace("_", " ").capitalize()} for a in variables],
+                                key=lambda v: v["id"])
+        return self
 
     def save(self, path: str | bytes | PathLike):
-        def encrypt(data):
+        def encode(data):
             for k, v in data.items():
                 if isinstance(v, str):
                     data[k] = base64.b64encode(v.encode(ENC)).decode(ENC)
                 elif isinstance(v, dict):
-                    encrypt(v)
+                    encode(v)
             return data
 
         RESULT = {
             "name": self.name,
             "icon": self.icon,
             "variables": self.variables, "commands": self.commands,
-            "structure": TemplatoronObject.__sort_dict(encrypt(self.structure))}
+            "structure": TemplatoronObject.__sort_dict(encode(self.structure))}
         json.dump(RESULT, open(path if path.endswith(EXT) else path + EXT, "w", encoding=ENC), indent=4,
                   sort_keys=False)
 
@@ -181,7 +167,6 @@ class TemplatoronObject:
         except PermissionError:
             return TemplatoronResponse.ACCESS_DENIED
         return TemplatoronResponse.OK
-
 
     def is_single_dir(self):
         return len(self.structure.keys()) == 1 and isinstance(list(self.structure.values())[0], dict)

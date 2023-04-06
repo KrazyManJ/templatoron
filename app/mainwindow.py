@@ -80,9 +80,9 @@ class TemplatoronMainWindow(FramelessWindow):
         self.OutputPathButton.clicked.connect(self.change_path)  # type: ignore
         self.CreateProjectBtn.clicked.connect(self.create_project)  # type: ignore
         self.TemplateListView.selectionChanged = self.handle_item_selection_changed  # type: ignore
-        self.ComboOpenVia.currentTextChanged.connect(self.settingPropertyChanged)  # type: ignore
-        self.CheckCloseApp.stateChanged.connect(self.settingPropertyChanged)  # type: ignore
-        self.CheckInitGit.stateChanged.connect(self.settingPropertyChanged)  # type: ignore
+        self.ComboOpenVia.currentTextChanged.connect(self.saveConfiguration)  # type: ignore
+        self.CheckCloseApp.stateChanged.connect(self.saveConfiguration)  # type: ignore
+        self.CheckInitGit.stateChanged.connect(self.saveConfiguration)  # type: ignore
         self.DefaultValuesBtn.clicked.connect(self.setDefaultParameters)  # type: ignore
         self.TemplateListView.customContextMenuRequested.connect(self.templateTreeContextMenu)  # type: ignore
         self.TemplateListView.mouseMoveEvent = lambda ev: None  # Disables mouse drag selecting (causes crash)
@@ -116,9 +116,6 @@ class TemplatoronMainWindow(FramelessWindow):
         })
 
     def closeEvent(self, a0: QtGui.QCloseEvent) -> None:
-        self.saveConfiguration()
-
-    def settingPropertyChanged(self):
         self.saveConfiguration()
 
     # ===================================================================================
@@ -283,7 +280,7 @@ class TemplatoronMainWindow(FramelessWindow):
         self.VariableListHeader.hide()
         self.update_tree_view()
 
-    def select_template(self,path):
+    def select_template(self, path):
         iterator = QTreeWidgetItemIterator(self.TemplateListView)
         while iterator.value():
             item = iterator.value()
