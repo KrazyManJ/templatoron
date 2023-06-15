@@ -6,12 +6,14 @@ from app.src import systemsupport, dialog
 
 
 class ConsoleWindow(QFramelessModal):
-    TitleBar: QFrame
-    Content: QFrame
-    Console: QPlainTextEdit
+    class ContentTyping(QFramelessModal):
+        Console: QPlainTextEdit
+
+    Content: ContentTyping
 
     def __init__(self, commands: list[str], working_directory=None):
         super().__init__("console_window.ui")
+        self.disableClosing()
 
         self.commands = commands
         self.curCommand = ""
@@ -34,10 +36,10 @@ class ConsoleWindow(QFramelessModal):
             super().closeEvent(event)
 
     def consoleText(self):
-        return self.Console.toPlainText()
+        return self.Content.Console.toPlainText()
 
     def addText(self, text):
-        self.Console.appendPlainText(text)
+        self.Content.Console.appendPlainText(text)
 
     def __run(self):
         if len(self.commands) > 0:

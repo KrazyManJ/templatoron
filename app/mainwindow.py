@@ -1,4 +1,5 @@
 import os.path
+import traceback
 
 from PyQt5 import uic, QtGui
 from PyQt5.QtCore import Qt, QItemSelection
@@ -218,7 +219,9 @@ class TemplatoronMainWindow(FramelessWindow):
             return
         self.set_app_state(False)
         sel = self.get_selected()
-        response = DefaultVariableWindow(sel.Template, self.defaultVarValues.get(os.path.relpath(sel.path), {})).exec()
+        try:
+            response = DefaultVariableWindow(sel.Template, self.defaultVarValues.get(os.path.relpath(sel.path), {})).exec()
+        except Exception as e: traceback.print_exc()
         if response is not None:
             self.defaultVarValues[os.path.relpath(sel.path)] = response
             self.saveConfiguration()
@@ -291,14 +294,16 @@ class TemplatoronMainWindow(FramelessWindow):
             iterator += 1
 
     def create_template(self):
-        self.set_app_state(False)
-        val = CreateTemplate().exec()
-        if val is not None:
-            created = templatoron.TemplatoronObject.from_file(val)
-            self.update_template_list()
-            self.select_template(val)
-            self.edit_template()
-        self.set_app_state(True)
+        try:
+            self.set_app_state(False)
+            val = CreateTemplate().exec()
+            if val is not None:
+                created = templatoron.TemplatoronObject.from_file(val)
+                self.update_template_list()
+                self.select_template(val)
+                self.edit_template()
+            self.set_app_state(True)
+        except Exception as e: traceback.print_exc()
 
     def update_template_list(self):
         if len(os.listdir(pather.TEMPLATES_FOLDER)) == 0:

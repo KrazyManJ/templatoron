@@ -1,32 +1,27 @@
 from PyQt5.QtCore import Qt
-from PyQt5.QtWidgets import QFrame, QPushButton, QLabel
+from PyQt5.QtWidgets import QFrame, QPushButton
 
-import app.src.graphiceffects
 from app.components.abstract.qframelessmodal import QFramelessModal
 from app.components.variableinput import VariableInput
-from app.src import utils
 from app.src.templatoron import TemplatoronObject
 
 
 class DefaultVariableWindow(QFramelessModal):
-    Content: QFrame
-    TitleBar: QFrame
-    BtnClose: QPushButton
-    ExtLabel: QLabel
+    class ContentTyping(QFramelessModal):
+        VariableAreaContent: QFrame
+        CreateBtn: QPushButton
 
-    VariableAreaContent: QFrame
-
-    CreateBtn: QPushButton
+    Content: ContentTyping
 
     def __init__(self, template: TemplatoronObject, values: dict):
         super().__init__("default_vars_window.ui")
-        self.BtnClose.clicked.connect(self.close) # type: ignore
-        app.src.graphiceffects.shadow(self.BtnClose, 50)
+        self.BtnClose.clicked.connect(self.close)
+
         for var in template.variables:
             varInput = VariableInput(var["id"], var["displayname"], template.is_var_used_in_file_system(var["id"]))
-            self.VariableAreaContent.layout().addWidget(varInput)
+            self.Content.VariableAreaContent.layout().addWidget(varInput)
             varInput.set_value(values.get(var["id"], ""))
-        self.CreateBtn.clicked.connect(self.process) # type: ignore
+        self.Content.CreateBtn.clicked.connect(self.process)
         self.__val = None
 
     def process(self):
@@ -38,7 +33,7 @@ class DefaultVariableWindow(QFramelessModal):
         self.close()
 
     def get_variables(self) -> list[VariableInput]:
-        return [i for i in self.VariableAreaContent.children() if isinstance(i, VariableInput)]
+        return [i for i in self.Content.VariableAreaContent.children() if isinstance(i, VariableInput)]
 
     def exec(self) -> dict[str, str] | None:
         super().exec()

@@ -10,4 +10,5 @@ testmain.py
 
 # Build files
 build
+dist
 *.exe

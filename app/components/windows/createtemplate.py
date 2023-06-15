@@ -6,36 +6,37 @@ from PyQt5.QtWidgets import QPushButton, QLineEdit, QLabel, QGraphicsOpacityEffe
 
 import app.src.graphiceffects
 from app.components.abstract.qframelessmodal import QFramelessModal
-from app.src import utils, templatoron, dialog
+from app.src import templatoron, dialog
 
 
 class CreateTemplate(QFramelessModal):
-    BtnClose: QPushButton
-    ExtLabel: QLabel
+    class ContentTyping(QFramelessModal):
+        ExtLabel: QLabel
+        NameInput: QLineEdit
+        CreateBtn: QPushButton
 
-    NameInput: QLineEdit
-    CreateBtn: QPushButton
+    Content: ContentTyping
 
     def __init__(self):
         super().__init__("create_template_window.ui")
-        self.BtnClose.clicked.connect(self.close)
+
         app.src.graphiceffects.shadow(self.BtnClose, 50)
-        self.ExtLabel.setText(templatoron.EXT)
+        self.Content.ExtLabel.setText(templatoron.EXT)
         self.__val = None
         regex = QRegExp(templatoron.ILLEGAL_CHARS)
         validator = QRegExpValidator(regex)
-        self.NameInput.setValidator(validator)
-        self.NameInput.setMaxLength(255)
+        self.Content.NameInput.setValidator(validator)
+        self.Content.NameInput.setMaxLength(255)
 
-        self.CreateBtn.clicked.connect(self.process)
-        self.NameInput.textChanged.connect(self.checkButton)
+        self.Content.CreateBtn.clicked.connect(self.process)
+        self.Content.NameInput.textChanged.connect(self.checkButton)
 
         self.set_create_project_button_state(False)
 
     def process(self):
-        if len(self.NameInput.text()) == 0:
+        if len(self.Content.NameInput.text()) == 0:
             return
-        pth = os.path.join("templates", self.NameInput.text() + templatoron.EXT)
+        pth = os.path.join("templates", self.Content.NameInput.text() + templatoron.EXT)
         if os.path.exists(pth):
             dialog.Warn("This template file already Exists!")
             return
@@ -44,14 +45,14 @@ class CreateTemplate(QFramelessModal):
         self.close()
 
     def checkButton(self):
-        self.set_create_project_button_state(len(self.NameInput.text()) > 0)
+        self.set_create_project_button_state(len(self.Content.NameInput.text()) > 0)
 
     def set_create_project_button_state(self, state: bool):
         opacity_effect = QGraphicsOpacityEffect()
         opacity_effect.setOpacity(0.5)
-        self.CreateBtn.setGraphicsEffect(None if state else opacity_effect)
-        self.CreateBtn.setCursor(QCursor(Qt.PointingHandCursor if state else Qt.ForbiddenCursor))
-        self.CreateBtn.setToolTip(None if state else "You need to enter all parameters before creation.")
+        self.Content.CreateBtn.setGraphicsEffect(None if state else opacity_effect)
+        self.Content.CreateBtn.setCursor(QCursor(Qt.PointingHandCursor if state else Qt.ForbiddenCursor))
+        self.Content.CreateBtn.setToolTip(None if state else "You need to enter all parameters before creation.")
 
     def exec(self) -> str | None:
         super().exec()
