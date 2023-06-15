@@ -7,14 +7,14 @@
     <x>0</x>
     <y>0</y>
     <width>470</width>
-    <height>293</height>
+    <height>360</height>
    </rect>
   </property>
   <property name="windowTitle">
    <string>Create Template</string>
   </property>
   <property name="styleSheet">
-   <string notr="true">#NameInputFrame &gt; * {
+   <string notr="true">#NameInputFrame &gt; *, #CategoryInputFrame &gt; * {
 	background: transparent;
 	border: none;
 	font: 10pt &quot;Fira Code&quot;;
@@ -41,7 +41,7 @@ QLabel {
 #CreateBtn:pressed {
 	background: #777;
 }
-#NameInputFrame {
+#NameInputFrame, #CategoryInputFrame {
     background: #141414;
     max-height: 40px;
     min-height: 40px;
@@ -66,80 +66,121 @@ QLabel {
     <number>20</number>
    </property>
    <item>
-    <widget class="QWidget" name="widget" native="true">
+    <widget class="QWidget" name="InputContent" native="true">
      <layout class="QVBoxLayout" name="verticalLayout_2">
       <property name="spacing">
+       <number>10</number>
+      </property>
+      <property name="leftMargin">
        <number>0</number>
       </property>
+      <property name="topMargin">
+       <number>0</number>
+      </property>
+      <property name="rightMargin">
+       <number>0</number>
+      </property>
+      <property name="bottomMargin">
+       <number>20</number>
+      </property>
       <item>
-       <spacer name="verticalSpacer_2">
-        <property name="orientation">
-         <enum>Qt::Vertical</enum>
-        </property>
-        <property name="sizeHint" stdset="0">
-         <size>
-          <width>20</width>
-          <height>40</height>
-         </size>
-        </property>
-       </spacer>
-      </item>
-      <item>
-       <widget class="QLabel" name="NameInputLabel">
-        <property name="sizePolicy">
-         <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
-          <horstretch>0</horstretch>
-          <verstretch>0</verstretch>
-         </sizepolicy>
-        </property>
-        <property name="text">
-         <string>File name</string>
-        </property>
-        <property name="margin">
-         <number>3</number>
-        </property>
-        <property name="indent">
-         <number>10</number>
-        </property>
-       </widget>
-      </item>
-      <item>
-       <widget class="QFrame" name="NameInputFrame">
+       <widget class="QFrame" name="NameFrame">
         <property name="frameShape">
          <enum>QFrame::StyledPanel</enum>
         </property>
         <property name="frameShadow">
          <enum>QFrame::Raised</enum>
         </property>
-        <layout class="QHBoxLayout" name="horizontalLayout_4">
+        <layout class="QVBoxLayout" name="verticalLayout_3">
          <property name="spacing">
           <number>0</number>
          </property>
          <item>
-          <widget class="QLineEdit" name="NameInput"/>
+          <widget class="QLabel" name="NameInputLabel">
+           <property name="sizePolicy">
+            <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+             <horstretch>0</horstretch>
+             <verstretch>0</verstretch>
+            </sizepolicy>
+           </property>
+           <property name="text">
+            <string>File name</string>
+           </property>
+           <property name="margin">
+            <number>3</number>
+           </property>
+           <property name="indent">
+            <number>10</number>
+           </property>
+          </widget>
          </item>
          <item>
-          <widget class="QLabel" name="ExtLabel">
-           <property name="text">
-            <string>.json</string>
+          <widget class="QFrame" name="NameInputFrame">
+           <property name="frameShape">
+            <enum>QFrame::StyledPanel</enum>
            </property>
+           <property name="frameShadow">
+            <enum>QFrame::Raised</enum>
+           </property>
+           <layout class="QHBoxLayout" name="horizontalLayout_4">
+            <property name="spacing">
+             <number>0</number>
+            </property>
+            <item>
+             <widget class="QLineEdit" name="NameInput"/>
+            </item>
+            <item>
+             <widget class="QLabel" name="ExtLabel">
+              <property name="text">
+               <string>.json</string>
+              </property>
+             </widget>
+            </item>
+           </layout>
           </widget>
          </item>
         </layout>
        </widget>
       </item>
       <item>
-       <spacer name="verticalSpacer">
-        <property name="orientation">
-         <enum>Qt::Vertical</enum>
+       <widget class="QFrame" name="CategoryFrame">
+        <property name="frameShape">
+         <enum>QFrame::StyledPanel</enum>
         </property>
-        <property name="sizeHint" stdset="0">
-         <size>
-          <width>20</width>
-          <height>40</height>
-         </size>
+        <property name="frameShadow">
+         <enum>QFrame::Raised</enum>
         </property>
-       </spacer>
+        <layout class="QVBoxLayout" name="verticalLayout_4">
+         <property name="spacing">
+          <number>0</number>
+         </property>
+         <item>
+          <widget class="QLabel" name="CategoryInputLabel">
+           <property name="text">
+            <string>Category</string>
+           </property>
+           <property name="indent">
+            <number>10</number>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QFrame" name="CategoryInputFrame">
+           <property name="frameShape">
+            <enum>QFrame::StyledPanel</enum>
+           </property>
+           <property name="frameShadow">
+            <enum>QFrame::Raised</enum>
+           </property>
+           <layout class="QHBoxLayout" name="horizontalLayout">
+            <item>
+             <widget class="QLineEdit" name="CategoryInput"/>
+            </item>
+           </layout>
+          </widget>
+         </item>
+        </layout>
+       </widget>
       </item>
      </layout>
     </widget>

@@ -1,4 +1,5 @@
 import os
+import traceback
 
 from PyQt5.QtCore import QRegExp, Qt
 from PyQt5.QtGui import QRegExpValidator, QCursor
@@ -14,6 +15,7 @@ class CreateTemplate(QFramelessModal):
         ExtLabel: QLabel
         NameInput: QLineEdit
         CreateBtn: QPushButton
+        CategoryInput: QLineEdit
 
     Content: ContentTyping
 
@@ -23,10 +25,12 @@ class CreateTemplate(QFramelessModal):
         app.src.graphiceffects.shadow(self.BtnClose, 50)
         self.Content.ExtLabel.setText(templatoron.EXT)
         self.__val = None
-        regex = QRegExp(templatoron.ILLEGAL_CHARS)
-        validator = QRegExpValidator(regex)
+        validator = QRegExpValidator(QRegExp(templatoron.ILLEGAL_CHARS))
         self.Content.NameInput.setValidator(validator)
         self.Content.NameInput.setMaxLength(255)
+
+        self.Content.CategoryInput.setValidator(validator)
+        self.Content.CategoryInput.setMaxLength(255)
 
         self.Content.CreateBtn.clicked.connect(self.process)
         self.Content.NameInput.textChanged.connect(self.checkButton)
@@ -36,16 +40,29 @@ class CreateTemplate(QFramelessModal):
     def process(self):
         if len(self.Content.NameInput.text()) == 0:
             return
-        pth = os.path.join("templates", self.Content.NameInput.text() + templatoron.EXT)
+        if len(self.Content.CategoryInput.text()) > 0:
+            catPath = os.path.join("templates",self.Content.CategoryInput.text())
+            if not os.path.exists(catPath):
+                os.makedirs(catPath,exist_ok=True)
+            pth = os.path.join(catPath, self.Content.NameInput.text() + templatoron.EXT)
+        else:
+            pth = os.path.join("templates", self.Content.NameInput.text() + templatoron.EXT)
+
         if os.path.exists(pth):
             dialog.Warn("This template file already Exists!")
             return
-        templatoron.TemplatoronObject().save(pth)
-        self.__val = pth
-        self.close()
+        try:
+            templatoron.TemplatoronObject().save(pth)
+
+            self.__val = pth
+            self.close()
+        except Exception as e:
+            traceback.print_exc()
 
     def checkButton(self):
-        self.set_create_project_button_state(len(self.Content.NameInput.text()) > 0)
+        self.set_create_project_button_state(
+            len(self.Content.NameInput.text()) > 0
+        )
 
     def set_create_project_button_state(self, state: bool):
         opacity_effect = QGraphicsOpacityEffect()

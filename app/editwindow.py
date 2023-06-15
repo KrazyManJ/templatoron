@@ -1,3 +1,5 @@
+import traceback
+
 from PyQt5 import uic
 from PyQt5.QtCore import Qt, QEventLoop
 from PyQt5.QtWidgets import QApplication, QPushButton, QFileDialog, QLineEdit
@@ -14,6 +16,7 @@ class TemplatoronEditWindow(FramelessWindow):
     CreateTemplateProjectButton: QPushButton
     ScanFolderButton: QPushButton
     TemplateNameEdit: QLineEdit
+    SetIconButton: QPushButton
 
     def __init__(self, template: TemplatoronObject):
         super().__init__()
@@ -28,6 +31,7 @@ class TemplatoronEditWindow(FramelessWindow):
         self.TemplateNameEdit.textEdited.connect(self.editName)
         self.CreateTemplateProjectButton.clicked.connect(self.create_project_template)
         self.ScanFolderButton.clicked.connect(self.scan_folder)
+        self.SetIconButton.clicked.connect(self.set_icon)
 
     def exec(self) -> TemplatoronObject | None:
         self.show()
@@ -58,3 +62,11 @@ class TemplatoronEditWindow(FramelessWindow):
         if srcpath is not None:
             self.Template.scan(srcpath, include_folder)
             self.__done = False
+
+    def set_icon(self):
+        pth,icoType = QFileDialog.getOpenFileName(self,"Select Icon","","Image (*.png)")
+        if pth != "":
+            try:
+                self.Template.icon = utils.image_to_base_bytes(pth)
+            except Exception as e:
+                traceback.print_exc()

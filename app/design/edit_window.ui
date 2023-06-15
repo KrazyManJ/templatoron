@@ -27,6 +27,28 @@
 	background: #292929;
 	min-height: 50px;
 	max-height: 50px;
+}
+#EditContent QPushButton {
+	padding: 10px;
+	min-width: 100px;
+	font: 15pt &quot;Inter&quot;;
+	background: #575757;
+	border-radius: 10px;
+	color: white;
+}
+#TemplateNameFrame {
+	background: #141414;
+	max-height: 40px;
+	min-height: 40px;
+	border-radius: 10px;
+	border: 1px solid #555;
+}
+QLineEdit {
+	background: transparent;
+	border: none;
+	font: 10pt &quot;Fira Code&quot;;
+	color: #ccc;
+	selection-background-color: #555;
 }</string>
   </property>
   <layout class="QVBoxLayout" name="verticalLayout">
@@ -66,10 +88,10 @@
      <widget class="QPushButton" name="CreateTemplateProjectButton">
       <property name="geometry">
        <rect>
-        <x>20</x>
-        <y>90</y>
-        <width>171</width>
-        <height>28</height>
+        <x>450</x>
+        <y>480</y>
+        <width>301</width>
+        <height>51</height>
        </rect>
       </property>
       <property name="text">
@@ -79,24 +101,60 @@
      <widget class="QPushButton" name="ScanFolderButton">
       <property name="geometry">
        <rect>
-        <x>20</x>
-        <y>150</y>
-        <width>93</width>
-        <height>28</height>
+        <x>770</x>
+        <y>480</y>
+        <width>191</width>
+        <height>51</height>
        </rect>
       </property>
       <property name="text">
        <string>Scan Folder</string>
       </property>
      </widget>
-     <widget class="QLineEdit" name="TemplateNameEdit">
+     <widget class="QFrame" name="TemplateNameFrame">
       <property name="geometry">
        <rect>
-        <x>20</x>
+        <x>30</x>
         <y>30</y>
-        <width>113</width>
-        <height>22</height>
+        <width>351</width>
+        <height>42</height>
        </rect>
+      </property>
+      <property name="frameShape">
+       <enum>QFrame::StyledPanel</enum>
+      </property>
+      <property name="frameShadow">
+       <enum>QFrame::Raised</enum>
+      </property>
+      <layout class="QHBoxLayout" name="horizontalLayout">
+       <property name="leftMargin">
+        <number>5</number>
+       </property>
+       <property name="topMargin">
+        <number>5</number>
+       </property>
+       <property name="rightMargin">
+        <number>5</number>
+       </property>
+       <property name="bottomMargin">
+        <number>5</number>
+       </property>
+       <item>
+        <widget class="QLineEdit" name="TemplateNameEdit"/>
+       </item>
+      </layout>
+     </widget>
+     <widget class="QPushButton" name="SetIconButton">
+      <property name="geometry">
+       <rect>
+        <x>30</x>
+        <y>100</y>
+        <width>181</width>
+        <height>51</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string>Set Icon</string>
       </property>
      </widget>
     </widget>

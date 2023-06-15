@@ -23,7 +23,7 @@ class QFramelessModal(QWidget):
         uic.loadUi(pather.design_file(uiFileName),self.Content)
         self.TitleBarTitle.setText(self.Content.windowTitle())
         self.setWindowTitle(f"Templatoron - {self.Content.windowTitle()}")
-        self.setFixedSize(self.Content.width(), self.Content.height())
+        self.setFixedSize(self.Content.width(), self.Content.height()+self.TitleBar.height())
         self.setWindowFlag(Qt.FramelessWindowHint)
         self.setAttribute(Qt.WA_TranslucentBackground)
         self.setWindowModality(Qt.ApplicationModal)

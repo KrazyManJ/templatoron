@@ -13,6 +13,7 @@ VAR_PREFIX = "@#"
 VAR_SUFFIX = "#@"
 ILLEGAL_CHARS = '[^\\\\/:*?"<>|]*'
 
+
 SCHEMA_PATH = os.path.join(__file__, os.path.pardir, "templatoron_schema.json")
 
 
