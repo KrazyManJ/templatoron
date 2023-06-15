@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <ui version="4.0">
- <class>Dialog</class>
- <widget class="QWidget" name="Dialog">
+ <class>Content</class>
+ <widget class="QWidget" name="Content">
   <property name="geometry">
    <rect>
     <x>0</x>
@@ -14,29 +14,7 @@
    <string>Templatoron - Default Values</string>
   </property>
   <property name="styleSheet">
-   <string notr="true">#Content {
-	background: #292929;
-	border: 1px solid #444;
-	border-radius: 15px;
-}
-#TitleBar {
-	max-height: 50px;
-	min-height: 50px;
-}
-#TitleBarTitle {
-	font: 12pt &quot;Inter&quot;;
-	color: #aaa;
-}
-#TitleBar QPushButton {
-	min-width: 35px;
-	max-width: 35px;
-	min-height: 35px;
-	max-height:35px;
-}
-#BtnClose {
-	border-image: url(:/titlebar/titlebar/close.svg);
-}
-#VariableArea, #VariableAreaContent {
+   <string notr="true">#VariableArea, #VariableAreaContent {
 	background: transparent;
 	border: none;
 }
@@ -75,14 +53,12 @@ QScrollBar::handle:vertical:hover {
 QScrollBar::handle:vertical:pressed {
 	background: #6A6A6A;
 }
-QScrollBar::add-line:vertical, QScrollBar::sub-line:vertical
-{
+QScrollBar::add-line:vertical, QScrollBar::sub-line:vertical {
       border: none;
       background: none;
       color: none;
 }
-QScrollBar::add-page:vertical, QScrollBar::sub-page:vertical
-{
+QScrollBar::add-page:vertical, QScrollBar::sub-page:vertical {
 	background: #151515;
 	border-radius:5px;
 }

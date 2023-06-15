@@ -206,3 +206,12 @@ class TemplatoronObject:
                 print(a1, a2)
                 return False
         return True
+
+    def copy(self):
+        copied_obj = TemplatoronObject()
+        copied_obj.name = self.name
+        copied_obj.structure = self.structure.copy()
+        copied_obj.variables = self.variables.copy()
+        copied_obj.commands = self.commands.copy()
+        copied_obj.icon = self.icon
+        return copied_obj
