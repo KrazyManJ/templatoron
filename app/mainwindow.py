@@ -1,5 +1,4 @@
 import os.path
-import traceback
 
 from PyQt5 import uic, QtGui
 from PyQt5.QtCore import Qt, QItemSelection
@@ -219,9 +218,7 @@ class TemplatoronMainWindow(FramelessWindow):
             return
         self.set_app_state(False)
         sel = self.get_selected()
-        try:
-            response = DefaultVariableWindow(sel.Template, self.defaultVarValues.get(os.path.relpath(sel.path), {})).exec()
-        except Exception as e: traceback.print_exc()
+        response = DefaultVariableWindow(sel.Template, self.defaultVarValues.get(os.path.relpath(sel.path), {})).exec()
         if response is not None:
             self.defaultVarValues[os.path.relpath(sel.path)] = response
             self.saveConfiguration()
@@ -294,16 +291,14 @@ class TemplatoronMainWindow(FramelessWindow):
             iterator += 1
 
     def create_template(self):
-        try:
-            self.set_app_state(False)
-            val = CreateTemplate().exec()
-            if val is not None:
-                created = templatoron.TemplatoronObject.from_file(val)
-                self.update_template_list()
-                self.select_template(val)
-                self.edit_template()
-            self.set_app_state(True)
-        except Exception as e: traceback.print_exc()
+        self.set_app_state(False)
+        val = CreateTemplate().exec()
+        if val is not None:
+            created = templatoron.TemplatoronObject.from_file(val)
+            self.update_template_list()
+            self.select_template(val)
+            self.edit_template()
+        self.set_app_state(True)
 
     def update_template_list(self):
         if len(os.listdir(pather.TEMPLATES_FOLDER)) == 0:
@@ -367,7 +362,8 @@ class TemplatoronMainWindow(FramelessWindow):
         if not self.is_template_selected():
             return
         self.set_app_state(False)
-        updatedTemplate = TemplatoronEditWindow(self.get_selected().Template).exec()
+        selected = self.get_selected()
+        updatedTemplate = TemplatoronEditWindow(selected.path,selected.Template).exec()
         if not updatedTemplate is None:
             self.get_selected().Template = updatedTemplate
             self.get_selected().save()

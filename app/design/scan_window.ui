@@ -22,6 +22,12 @@
 	border-radius: 10px;
 	color: white;
 }
+#ScanButton:hover {
+	background: #666;
+}
+#ScanButton:pressed {
+	background: #777;
+}
 #InputPathFrame {
 	background: #141414;
 	max-height: 40px;

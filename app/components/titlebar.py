@@ -18,6 +18,8 @@ class TitleBar(QWidget):
     BtnMin: QPushButton
     BtnMax: QPushButton
 
+    TitleBarTitle: QLabel
+
     def __init__(self, parent):
         super().__init__(parent)  # type: ignore
         uic.loadUi(os.path.join(__file__, os.path.pardir, os.path.pardir, "design", "titlebar.ui"), self)
@@ -66,3 +68,7 @@ class TitleBar(QWidget):
         if state is None:
             state = self.window().isMaximized()
         self.BtnMax.setStyleSheet(StyleConstants.TITLEBAR_NORMALIZE_BTN if state else "")
+
+    def setTitle(self, value: str):
+        self.TitleBarTitle.setText(value)
+        return self

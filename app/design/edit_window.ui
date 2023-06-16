@@ -49,6 +49,12 @@ QLineEdit {
 	font: 10pt &quot;Fira Code&quot;;
 	color: #ccc;
 	selection-background-color: #555;
+}
+#EditContent QPushButton:hover {
+	background: #666;
+}
+#EditContent QPushButton:pressed {
+	background: #777;
 }</string>
   </property>
   <layout class="QVBoxLayout" name="verticalLayout">
@@ -94,6 +100,9 @@ QLineEdit {
         <height>51</height>
        </rect>
       </property>
+      <property name="cursor">
+       <cursorShape>PointingHandCursor</cursorShape>
+      </property>
       <property name="text">
        <string>Create Template Project</string>
       </property>
@@ -106,6 +115,9 @@ QLineEdit {
         <width>191</width>
         <height>51</height>
        </rect>
+      </property>
+      <property name="cursor">
+       <cursorShape>PointingHandCursor</cursorShape>
       </property>
       <property name="text">
        <string>Scan Folder</string>
@@ -152,6 +164,9 @@ QLineEdit {
         <width>181</width>
         <height>51</height>
        </rect>
+      </property>
+      <property name="cursor">
+       <cursorShape>PointingHandCursor</cursorShape>
       </property>
       <property name="text">
        <string>Set Icon</string>

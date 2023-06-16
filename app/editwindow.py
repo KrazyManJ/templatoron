@@ -1,3 +1,4 @@
+import os.path
 import traceback
 
 from PyQt5 import uic
@@ -18,11 +19,11 @@ class TemplatoronEditWindow(FramelessWindow):
     TemplateNameEdit: QLineEdit
     SetIconButton: QPushButton
 
-    def __init__(self, template: TemplatoronObject):
+    def __init__(self, path: str ,template: TemplatoronObject):
         super().__init__()
         self.Template = template.copy()
         uic.loadUi(pather.design_file("edit_window.ui"), self)
-        self.setTitleBar(TitleBar(self))
+        self.setTitleBar(TitleBar(self).setTitle(f'Templatoron - Edit ("{os.path.relpath(path, "Templates")}")'))
         self.setWindowModality(Qt.ApplicationModal)
         utils.center_widget(QApplication.instance(),self)
         self.__loop = QEventLoop()

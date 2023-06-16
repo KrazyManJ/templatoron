@@ -38,7 +38,7 @@
 	color: #aaa;
 }</string>
   </property>
-  <layout class="QHBoxLayout" name="horizontalLayout" stretch="1,1,1">
+  <layout class="QHBoxLayout" name="horizontalLayout" stretch="1,2,1">
    <property name="spacing">
     <number>0</number>
    </property>
